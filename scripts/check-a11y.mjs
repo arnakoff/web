@@ -14,8 +14,8 @@
 /* global document, getComputedStyle, HTMLAnchorElement, location, Node, window */
 import AxeBuilder from '@axe-core/playwright';
 import { chromium } from 'playwright';
-import { THEME_KEY } from '../src/lib/theme.ts';
 import { DIST, PAGES, requireDist, serveDist } from './dist.mjs';
+import { checkTrackers, watchPage } from './trackers.mjs';
 
 /** Viewports every page is checked at, in CSS pixels. */
 const VIEWPORTS = [
@@ -28,17 +28,6 @@ const SCHEMES = ['light', 'dark'];
 
 /** axe-core rule tags: WCAG 2.2 levels A and AA, earlier versions included. */
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
-
-/**
- * Browser storage the site may write: interface state that never leaves the
- * browser. Session storage keys carry a `session:` prefix.
- */
-const ALLOWED_STORAGE = new Set([
-  // The theme choice, shared with Starlight (src/lib/theme.ts).
-  THEME_KEY,
-  // Starlight's docs sidebar: which groups are open and its scroll position.
-  'session:sl-sidebar-state',
-]);
 
 /** Impacts that fail the check; lower ones are only listed. */
 const FAILING_IMPACTS = new Set(['serious', 'critical']);
@@ -143,51 +132,13 @@ async function checkKeyboard(page, url) {
 }
 
 /**
- * Reports each CSP violation of a page, which Chromium logs as a console error,
- * and each request that leaves the site.
- * @param {import('playwright').Page} page
- * @param {string} where
- */
-function watchPage(page, where) {
-  page.on('console', (message) => {
-    if (message.type() === 'error' && message.text().includes('Content Security Policy')) {
-      errors.push(`${where}: ${message.text()}`);
-    }
-  });
-  page.on('request', (request) => {
-    const url = new URL(request.url());
-    if (url.protocol.startsWith('http') && url.origin !== origin) {
-      errors.push(`${where}: request to an outside origin ${url.origin}`);
-    }
-  });
-}
-
-/**
- * Reports any cookie, and any browser storage outside ALLOWED_STORAGE.
- * @param {import('playwright').Page} page
- * @param {string} where
- */
-async function checkTrackers(page, where) {
-  for (const cookie of await page.context().cookies()) {
-    errors.push(`${where}: sets the cookie ${cookie.name}`);
-  }
-  const keys = await page.evaluate(() => [
-    ...Object.keys(localStorage),
-    ...Object.keys(sessionStorage).map((key) => `session:${key}`),
-  ]);
-  for (const key of keys.filter((key) => !ALLOWED_STORAGE.has(key))) {
-    errors.push(`${where}: stores ${key} in the browser`);
-  }
-}
-
-/**
  * Runs the docs search, which loads Pagefind's worker and WebAssembly.
  * @param {import('playwright').Browser} browser
  */
 async function checkSearch(browser) {
   const where = `${SEARCH.path} search`;
   const page = await browser.newPage();
-  watchPage(page, where);
+  watchPage(page, where, origin, errors);
   await page.goto(origin + SEARCH.path);
   await page.click('button[data-open-modal]');
   await page.fill('.pagefind-ui__search-input', SEARCH.query);
@@ -196,7 +147,7 @@ async function checkSearch(browser) {
   } catch {
     errors.push(`${where}: « ${SEARCH.query} » gives no result`);
   }
-  await checkTrackers(page, where);
+  await checkTrackers(page, where, errors);
   await page.close();
 }
 
@@ -209,7 +160,7 @@ try {
         const where = `${path} ${String(viewport.width)}px ${colorScheme}`;
         const context = await browser.newContext({ viewport, colorScheme });
         const page = await context.newPage();
-        watchPage(page, where);
+        watchPage(page, where, origin, errors);
         const url = origin + path;
         await page.goto(url);
 
@@ -233,7 +184,7 @@ try {
         if (overflow > 0) errors.push(`${where}: scrolls sideways by ${String(overflow)} px`);
 
         for (const problem of await checkKeyboard(page, url)) errors.push(`${where}: ${problem}`);
-        await checkTrackers(page, where);
+        await checkTrackers(page, where, errors);
         await context.close();
       }
     }
