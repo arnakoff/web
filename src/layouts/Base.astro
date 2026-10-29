@@ -4,6 +4,7 @@ import '../styles/tokens.css';
 import '../styles/global.css';
 import ThemeInit from '../components/ThemeInit.astro';
 import ThemeSelect from '../components/ThemeSelect.astro';
+import { FAVICON_SVG, ICON_LINKS, shareImageMeta } from '../lib/meta';
 
 interface Props {
   title: string;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+const url = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
@@ -20,8 +22,22 @@ const { title, description } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <ThemeInit />
     <meta name="description" content={description} />
-    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <link rel="canonical" href={url} />
     <title>{title}</title>
+    <link rel="icon" href={FAVICON_SVG} type="image/svg+xml" />
+    {ICON_LINKS.map((attrs) => (
+      <link {...attrs} />
+    ))}
+    <meta property="og:title" content={title} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={url} />
+    <meta property="og:locale" content="fr" />
+    <meta property="og:description" content={description} />
+    <meta property="og:site_name" content="Arnakoff" />
+    <meta name="twitter:card" content="summary_large_image" />
+    {shareImageMeta(url).map((attrs) => (
+      <meta {...attrs} />
+    ))}
   </head>
   <body>
     <header>
