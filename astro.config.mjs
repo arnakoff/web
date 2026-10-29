@@ -15,6 +15,7 @@ export default defineConfig({
         root: { label: 'Français', lang: 'fr' },
       },
       social: [{ icon: 'github', label: 'GitHub', href: REPO_WEB_URL }],
+      customCss: ['./src/styles/tokens.css', './src/styles/starlight.css'],
     }),
   ],
 });

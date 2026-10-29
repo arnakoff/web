@@ -1,0 +1,41 @@
+/*
+ * Aligns Starlight (/docs) on the site tokens. Starlight's own values live in
+ * cascade layers, so these unlayered declarations win in both themes; the
+ * tokens switch between light and dark themselves.
+ */
+
+:root {
+  --sl-font: var(--font-sans);
+  --sl-font-mono: var(--font-mono);
+
+  /* Starlight's gray scale runs from the strongest text to the page. */
+  --sl-color-white: var(--color-text);
+  --sl-color-gray-1: var(--color-text);
+  --sl-color-gray-2: var(--color-text);
+  --sl-color-gray-3: var(--color-text-muted);
+  --sl-color-gray-4: var(--color-border-strong);
+  --sl-color-gray-5: var(--color-border);
+  --sl-color-gray-6: var(--color-bg-muted);
+  --sl-color-gray-7: var(--color-bg-subtle);
+  --sl-color-black: var(--color-bg);
+
+  /* Neutral accent: red stays for alerts, links stay underlined text. */
+  --sl-color-accent-low: var(--color-bg-muted);
+  --sl-color-accent: var(--color-text);
+  --sl-color-accent-high: var(--color-text);
+  --sl-color-text: var(--color-text);
+  --sl-color-text-accent: var(--color-text);
+  --sl-color-text-invert: var(--color-text-invert);
+  --sl-color-bg: var(--color-bg);
+  --sl-color-bg-nav: var(--color-bg-subtle);
+  --sl-color-bg-sidebar: var(--color-bg-subtle);
+  --sl-color-bg-inline-code: var(--color-bg-muted);
+  --sl-color-bg-accent: var(--color-text);
+  --sl-color-hairline-light: var(--color-border);
+  --sl-color-hairline: var(--color-border);
+  --sl-color-hairline-shade: var(--color-border);
+
+  --sl-color-red-low: var(--color-alert-bg);
+  --sl-color-red: var(--color-alert);
+  --sl-color-red-high: var(--color-alert);
+}

@@ -1,0 +1,53 @@
+---
+// Theme selector of the showcase pages. Hidden until its script runs: without
+// JavaScript, the system preference applies and a dead control would mislead.
+---
+
+<theme-select>
+  <label for="theme-select">Thème</label>
+  <select id="theme-select">
+    <option value="auto">Système</option>
+    <option value="light">Clair</option>
+    <option value="dark">Sombre</option>
+  </select>
+</theme-select>
+
+<script>
+  import { applyTheme, loadTheme, parseTheme } from '../lib/theme';
+
+  class ThemeSelect extends HTMLElement {
+    connectedCallback(): void {
+      const select = this.querySelector('select');
+      if (!select) return;
+      select.value = loadTheme();
+      select.addEventListener('change', () => {
+        applyTheme(parseTheme(select.value));
+      });
+    }
+  }
+
+  customElements.define('theme-select', ThemeSelect);
+</script>
+
+<style>
+  theme-select {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    font-size: var(--text-sm);
+  }
+
+  theme-select:not(:defined) {
+    display: none;
+  }
+
+  select {
+    min-height: 2.75rem;
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+  }
+</style>

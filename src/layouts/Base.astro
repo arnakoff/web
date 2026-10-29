@@ -1,0 +1,41 @@
+---
+// Document shell of every showcase page: metadata, tokens, theme.
+import '../styles/tokens.css';
+import '../styles/global.css';
+import ThemeInit from '../components/ThemeInit.astro';
+import ThemeSelect from '../components/ThemeSelect.astro';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <ThemeInit />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>
+      <ThemeSelect />
+    </header>
+    <slot />
+  </body>
+</html>
+
+<style>
+  header {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+</style>
