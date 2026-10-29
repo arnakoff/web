@@ -1,0 +1,41 @@
+---
+// The API releases, newest first, read from the copy of its CHANGELOG.md
+// (lib/changelog.ts). Entries are commit titles, in English: they are marked
+// as such for screen readers.
+import { RELEASES } from '../lib/changelog';
+
+const DATE = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeZone: 'UTC' });
+---
+
+{RELEASES.length === 0 ? (
+  <p>Aucune version de l'API n'est encore publiée.</p>
+) : (
+  RELEASES.map(({ version, date, sections }) => (
+    <section aria-labelledby={`version-${version}`}>
+      <h3 id={`version-${version}`}>
+        Version {version}
+        <span class="date">
+          {' — '}
+          <time datetime={date}>{DATE.format(new Date(`${date}T00:00:00Z`))}</time>
+        </span>
+      </h3>
+      {sections.map(({ title, translated, entries }) => (
+        <>
+          <h4 lang={translated ? undefined : 'en'}>{title}</h4>
+          <ul lang="en">
+            {entries.map((entry) => (
+              <li set:html={entry} />
+            ))}
+          </ul>
+        </>
+      ))}
+    </section>
+  ))
+)}
+
+<style>
+  .date {
+    font-weight: normal;
+    color: var(--color-text-muted);
+  }
+</style>

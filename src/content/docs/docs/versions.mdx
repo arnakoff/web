@@ -1,0 +1,54 @@
+---
+# Every claim comes from arnakoff/api: docs/standards.md (versioning,
+# Deprecation, Sunset, notice), CONTRIBUTING.md (SemVer, release-please) and
+# README.md (not in service yet). The changelog is the copy of CHANGELOG.md.
+title: Versions et dépréciation
+description: Comment l'API Arnakoff est versionnée, comment un retrait est annoncé six mois à l'avance avec les en-têtes Deprecation et Sunset, et le journal de ses versions.
+---
+
+import Callout from '../../../components/Callout.astro';
+import Changelog from '../../../components/Changelog.astro';
+import { API_RELEASES_URL, API_STANDARDS_URL, STANDARD_URLS } from '../../../lib/site';
+
+<Callout level="attention" title="l’API n’est pas encore en service">
+  <p>
+    Ses versions commencent par 0 : selon <a href={STANDARD_URLS.semver}>SemVer</a>, tout peut
+    encore changer avant la version 1.0.0.
+  </p>
+</Callout>
+
+## Numéros de version
+
+Le contrat de l'API est versionné par son chemin : chaque route commence par `/v1`.
+
+Les versions publiées suivent <a href={STANDARD_URLS.semver}>SemVer 2.0.0</a>, à partir des changements fusionnés :
+
+- un correctif augmente le dernier nombre (`1.4.2` devient `1.4.3`) ;
+- une nouveauté augmente celui du milieu (`1.4.3` devient `1.5.0`) ;
+- un changement cassant augmente le premier (`1.5.0` devient `2.0.0`).
+
+Avant la version 1.0.0, un changement cassant n'augmente que le nombre du milieu.
+
+## Dépréciation
+
+Quand une version ou un champ du contrat public va être retiré, les réponses de l'API te le disent avec deux en-têtes :
+
+- `Deprecation` (<a href={STANDARD_URLS.deprecation}>RFC 9745</a>) : la date à partir de laquelle ce que tu appelles est déprécié ;
+- `Sunset` (<a href={STANDARD_URLS.sunset}>RFC 8594</a>) : la date à partir de laquelle il ne répondra plus.
+
+Entre ces deux dates, il y a au moins six mois. Voici leur forme, avec des dates d'exemple :
+
+```http
+Deprecation: @1798761600
+Sunset: Thu, 01 Jul 2027 00:00:00 GMT
+```
+
+`Deprecation` donne un horodatage Unix précédé de `@` (ici le 1<sup>er</sup> janvier 2027), `Sunset` une date HTTP. Repère ces en-têtes dans tes journaux pour migrer avant la date de retrait.
+
+Source : les <a href={API_STANDARDS_URL}>standards de l'API</a>.
+
+## Journal des versions
+
+Chaque version liste les changements fusionnés dans l'API. Leurs titres restent en anglais, comme dans son dépôt. Le même journal est publié dans les <a href={API_RELEASES_URL}>versions GitHub de l'API</a>.
+
+<Changelog />
