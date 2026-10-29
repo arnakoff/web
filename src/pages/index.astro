@@ -1,0 +1,24 @@
+---
+import { DOCS_PATH } from '../lib/site';
+
+const title = 'Arnakoff';
+const description = "Arnakoff, l'API française de signaux sourcés contre les arnaques.";
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <main>
+      <h1>{title}</h1>
+      <p>Le site est en construction.</p>
+      <p><a href={DOCS_PATH}>Lire la documentation de l'API</a></p>
+    </main>
+  </body>
+</html>
