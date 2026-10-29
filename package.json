@@ -14,7 +14,8 @@
     "preview": "astro preview",
     "check": "astro check && eslint . --max-warnings 0 && prettier --check .",
     "format": "prettier --write .",
-    "test": "node scripts/check-contrast.mjs && node scripts/check-site.mjs"
+    "test": "node scripts/check-contrast.mjs && node scripts/check-site.mjs",
+    "icons": "node scripts/build-icons.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "0.42.7",
@@ -28,6 +29,7 @@
     "globals": "17.13.0",
     "prettier": "3.9.10",
     "prettier-plugin-astro": "1.1.2",
+    "sharp": "0.35.5",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1"
   }
