@@ -44,7 +44,7 @@ export const HASHES_PLACEHOLDER = '{inline-script-hashes}';
  * @returns {string[]}
  */
 export function inlineScriptHashes(html) {
-  return Array.from(html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi))
+  return Array.from(html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\b[^>]*>/gi))
     .filter(([, attributes = '']) => !/\ssrc\s*=|application\/ld\+json/i.test(attributes))
     .map(([, , body = '']) => `'sha256-${createHash('sha256').update(body).digest('base64')}'`);
 }
