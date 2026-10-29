@@ -1,0 +1,41 @@
+name: Bogue du site
+description: Une page cassée, un lien mort, un problème d'affichage ou d'accessibilité.
+labels: [type:bug, area:site]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de ton signalement. Vérifie d'abord qu'aucune issue ouverte ne décrit déjà ce problème.
+        N'écris ici aucune donnée personnelle.
+  - type: input
+    id: url
+    attributes:
+      label: Page
+      description: L'adresse de la page concernée.
+      placeholder: https://arnakoff.com/docs/
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: Ce qui se passe
+      description: Ce que tu vois, et ce que tu attendais à la place.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Étapes pour reproduire
+      placeholder: |
+        1. Ouvre la page…
+        2. Clique sur…
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Navigateur et appareil
+      description: Avec la largeur d'écran, le thème clair ou sombre, et l'outil d'assistance s'il y en a un.
+      placeholder: Firefox 150 sur Android, thème sombre, TalkBack
+    validations:
+      required: true

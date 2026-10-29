@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Signaler une faille de sécurité
+    url: https://github.com/arnakoff/.github/blob/main/SECURITY.md
+    about: En privé, jamais dans une issue publique.
+  - name: Tu penses être victime d'une arnaque
+    url: https://github.com/arnakoff/.github/blob/main/SUPPORT.md
+    about: Arnakoff ne traite pas les signalements individuels. Cette page liste les services officiels.
+  - name: Un bogue ou une demande sur l'API
+    url: https://github.com/arnakoff/api/issues/new/choose
+    about: L'API a son propre dépôt.
