@@ -33,6 +33,65 @@ jobs:
       - run: npm run check
       - run: npm run build
       - run: npm test
+      # The checked build is the one deployed.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: dist/
+          retention-days: 1
+          if-no-files-found: error
+
+  # Production on a push to main, a preview for each pull request, both on
+  # Cloudflare Pages; the URL is on the pull request's deployment. Setup is
+  # in CONTRIBUTING.md; the job is skipped until CLOUDFLARE_ACCOUNT_ID exists.
+  # Pull requests from forks run on pull_request, never pull_request_target:
+  # they get no secret and are not deployed. Neither are Dependabot's, whose
+  # runs only get Dependabot secrets. Not part of the required check: a
+  # Cloudflare outage does not block merges.
+  deploy:
+    name: Deploy
+    needs: [site]
+    if: >-
+      vars.CLOUDFLARE_ACCOUNT_ID != '' &&
+      (github.event_name == 'push' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    environment:
+      name: ${{ github.event_name == 'push' && 'production' || 'preview' }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+      # wrangler, at the version of package-lock.json.
+      - run: npm ci
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist/
+      - id: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          PROJECT: arnakoff-web
+          # main is the production branch of the Pages project.
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler.ndjson
+          WRANGLER_SEND_METRICS: 'false'
+        run: |
+          npx wrangler pages deploy dist --project-name="$PROJECT" --branch="$BRANCH" \
+            --commit-hash="$GITHUB_SHA" --commit-dirty=true
+          url="$(jq -r 'select(.type == "pages-deploy-detailed") | .url' "$WRANGLER_OUTPUT_FILE_PATH")"
+          echo "Deployed to $url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
 
   # Single required status check for the main ruleset: new jobs are added to
   # `needs` here instead of to the ruleset.

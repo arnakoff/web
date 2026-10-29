@@ -1,0 +1,17 @@
+# Security headers of every response, applied by Cloudflare Pages.
+# `npm run build` replaces {inline-script-hashes} with the SHA-256 hash of
+# every inline script of the built pages (scripts/build-headers.mjs).
+# - 'wasm-unsafe-eval': the docs search (Pagefind) runs WebAssembly.
+# - style-src 'unsafe-inline': Starlight and Expressive Code write `style`
+#   attributes, which hashes cannot allow; scripts stay hash-only.
+# - img-src data:: inline SVG icons in the CSS.
+# A new outside origin (the API for the online checker) goes into
+# connect-src here, in the same pull request.
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval' {inline-script-hashes}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), usb=(), xr-spatial-tracking=(), browsing-topics=()
+  Cross-Origin-Opener-Policy: same-origin
+  X-Frame-Options: DENY

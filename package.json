@@ -10,7 +10,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/build-headers.mjs",
     "preview": "astro preview",
     "check": "astro check && eslint . --max-warnings 0 && prettier --check .",
     "format": "prettier --write .",
@@ -34,6 +34,7 @@
     "prettier-plugin-astro": "1.1.2",
     "sharp": "0.35.5",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.72.1"
+    "typescript-eslint": "8.72.1",
+    "wrangler": "4.151.3"
   }
 }
