@@ -15,7 +15,8 @@
     "check": "astro check && eslint . --max-warnings 0 && prettier --check .",
     "format": "prettier --write .",
     "test": "node scripts/check-contrast.mjs && node scripts/check-site.mjs && node scripts/check-a11y.mjs",
-    "icons": "node scripts/build-icons.mjs"
+    "icons": "node scripts/build-icons.mjs",
+    "sync": "node scripts/sync.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "0.42.7",

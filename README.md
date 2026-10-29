@@ -33,6 +33,7 @@ npm run dev      # http://localhost:4321
 | `npm run build`   | Construit le site dans `dist/`.                                                                            |
 | `npm test`        | Vérifie `dist/` : pages attendues, liens internes, métadonnées, accessibilité (axe, clavier, débordement). |
 | `npm run preview` | Sert `dist/` en local.                                                                                     |
+| `npm run sync`    | Copie sources, signaux, contrat OpenAPI et notes de version depuis `../arnakoff` dans `src/content/api/`.  |
 | `npm run icons`   | Régénère les icônes PNG et l'image de partage depuis `public/favicon.svg`.                                 |
 
 La CI lance `check`, `build` et `test` sur chaque pull request.

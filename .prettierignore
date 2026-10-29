@@ -5,3 +5,5 @@ package-lock.json
 # Local agent files, never committed.
 .claude/
 CLAUDE.md
+# Copies written by npm run sync, never reformatted.
+src/content/api/

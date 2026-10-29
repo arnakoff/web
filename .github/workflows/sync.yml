@@ -1,0 +1,99 @@
+# Daily copy of the factual content of arnakoff/api (scripts/sync.mjs). When a
+# copy changes, the chore/content-sync branch is rewritten from main and its
+# pull request is opened or updated; it is reviewed and merged like any other.
+#
+# The token comes from a GitHub App of the organisation, not GITHUB_TOKEN:
+# pull requests opened with GITHUB_TOKEN do not trigger workflows, so the
+# required CI check would never run on them. Setup is in CONTRIBUTING.md; the
+# job is skipped until the SYNC_APP_CLIENT_ID variable exists.
+# Actions are pinned by full commit SHA (arnakoff/api docs/standards.md).
+name: Content sync
+
+on:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync content from arnakoff/api
+    if: vars.SYNC_APP_CLIENT_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: {}
+    env:
+      BRANCH: chore/content-sync
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: arnakoff/api
+          path: .arnakoff-api
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      # Only node: built-ins, no npm ci needed.
+      - run: node scripts/sync.mjs
+        env:
+          ARNAKOFF_API_DIR: .arnakoff-api
+      - name: Look for changed copies
+        id: diff
+        run: |
+          if [ -n "$(git status --porcelain -- src/content/api)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "api-sha=$(git -C .arnakoff-api rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      # Limited to this repository and to the two permissions the next steps
+      # use; revoked at the end of the job.
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app-token
+        with:
+          client-id: ${{ vars.SYNC_APP_CLIENT_ID }}
+          private-key: ${{ secrets.SYNC_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Open or update the pull request
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          API_SHA: ${{ steps.diff.outputs.api-sha }}
+        run: |
+          bot_id="$(gh api "/users/${APP_SLUG}[bot]" --jq .id)"
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          git add -- src/content/api
+          git commit --quiet \
+            -m "chore(content): sync the copies from arnakoff/api" \
+            -m "Copied by scripts/sync.mjs from arnakoff/api@${API_SHA}."
+          git push --force --quiet \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            "HEAD:refs/heads/${BRANCH}"
+          if [ -z "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[].number')" ]; then
+            gh pr create --base main --head "$BRANCH" \
+              --title "chore(content): sync the copies from arnakoff/api" \
+              --body "Copies written by \`npm run sync\` from arnakoff/api@${API_SHA}. Check that every page quoting them still says the same thing before merging."
+          fi
+      # The API went back to what main already holds: the pull request is stale.
+      - name: Close a stale pull request
+        if: steps.diff.outputs.changed == 'false'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          pr="$(gh pr list --head "$BRANCH" --state open --json number --jq '.[].number')"
+          if [ -n "$pr" ]; then
+            gh pr close "$pr" --delete-branch --comment "main already matches arnakoff/api."
+          fi
