@@ -1,0 +1,53 @@
+---
+// Footer of the showcase pages: documentation and source code.
+import { DOCS_PATH, REPO_API_URL, REPO_WEB_URL } from '../lib/site';
+
+const LINKS = [
+  { href: DOCS_PATH, label: "Documentation de l'API" },
+  { href: REPO_API_URL, label: "Code source de l'API" },
+  { href: REPO_WEB_URL, label: 'Code source du site' },
+] as const;
+---
+
+<footer class="site-footer">
+  <nav aria-label="Pied de page">
+    <ul>
+      {LINKS.map(({ href, label }) => (
+        <li>
+          <a href={href}>{label}</a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+  <p>Arnakoff, l'API française de signaux sourcés contre les arnaques. Code sous licence MIT.</p>
+</footer>
+
+<style>
+  .site-footer {
+    padding: var(--space-6) var(--gutter);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-subtle);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--size-target);
+    color: var(--color-text);
+  }
+
+  p {
+    margin: var(--space-2) 0 0;
+  }
+</style>

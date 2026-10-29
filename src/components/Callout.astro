@@ -1,0 +1,63 @@
+---
+// A callout with a level (`info`, `attention` or `alerte`, see lib/callout.ts),
+// written out before its content.
+import { CALLOUT_LABELS, type CalloutLevel } from '../lib/callout';
+
+interface Props {
+  level: CalloutLevel;
+  /** Shown after the level, as the callout's heading text. */
+  title?: string;
+}
+
+const { level, title } = Astro.props;
+/** French punctuation: a no-break space before the colon. */
+const suffix = title ? `\u00a0: ${title}` : '';
+---
+
+<div class:list={['callout', level]} role="note">
+  <p class="label">
+    <strong>{CALLOUT_LABELS[level]}</strong>
+    {suffix}
+  </p>
+  <div class="body">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .callout {
+    --accent: var(--color-info);
+    --surface: var(--color-info-bg);
+
+    margin-block: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--accent);
+    border-left-width: 0.25rem;
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--color-text);
+  }
+
+  .attention {
+    --accent: var(--color-attention);
+    --surface: var(--color-attention-bg);
+  }
+
+  .alerte {
+    --accent: var(--color-alert);
+    --surface: var(--color-alert-bg);
+  }
+
+  .label {
+    margin: 0;
+    color: var(--accent);
+  }
+
+  .body > :global(:first-child) {
+    margin-top: var(--space-1);
+  }
+
+  .body > :global(:last-child) {
+    margin-bottom: 0;
+  }
+</style>
