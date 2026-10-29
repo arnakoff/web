@@ -1,0 +1,171 @@
+---
+// How Arnakoff works, its limits, what it never says and where to turn after
+// a scam. Every claim comes from arnakoff/api: README, docs/signals.md and
+// docs/sources.md.
+import Base from '../layouts/Base.astro';
+import Callout from '../components/Callout.astro';
+import { CALLOUT_LABELS } from '../lib/callout';
+import { API_SIGNALS_URL, API_SOURCES_URL, DOCS_PATH, HELP_URLS, ROADMAP_URL } from '../lib/site';
+
+/** Official services for a scam victim: who runs each one and what it takes. */
+const HELP = [
+  {
+    href: HELP_URLS.cyber17,
+    name: '17Cyber',
+    text: 'diagnostic et assistance en ligne pour les victimes de cybermalveillance, par la Police nationale, la Gendarmerie nationale et Cybermalveillance.gouv.fr.',
+  },
+  {
+    href: HELP_URLS.signalConso,
+    name: 'SignalConso',
+    text: 'signaler un problème avec une entreprise, un achat ou un démarchage, à la DGCCRF.',
+  },
+  {
+    href: HELP_URLS.spam33700,
+    name: '33700',
+    text: 'signaler un SMS ou un appel non sollicité aux opérateurs mobiles.',
+  },
+  {
+    href: HELP_URLS.amfBlacklists,
+    name: "Listes noires de l'AMF",
+    text: 'les sociétés et sites non autorisés, pour vérifier une offre de placement.',
+  },
+  {
+    href: HELP_URLS.abeInfoService,
+    name: 'Assurance Banque Épargne Info Service',
+    text: "la plateforme de la Banque de France, de l'ACPR et de l'AMF pour la banque, l'assurance et l'épargne.",
+  },
+] as const;
+
+const title = 'Comment ça marche, limites et FAQ · Arnakoff';
+const description =
+  "Comment Arnakoff confronte un site, un e-mail ou un SIREN à des sources publiques, ce que ses signaux ne prouvent pas et vers qui te tourner en cas d'arnaque.";
+---
+
+<Base title={title} description={description}>
+  <h1>Comment ça marche</h1>
+
+  <Callout level="info" title="en construction">
+    <p>
+      L'API n'est pas encore en service. Cette page décrit ce qu'elle fera. Tu peux suivre
+      l'avancement dans la <a href={ROADMAP_URL}>feuille de route</a>.
+    </p>
+  </Callout>
+
+  <h2>En quelques étapes</h2>
+  <ol>
+    <li>
+      Tu donnes une entrée à l'API : un site, un e-mail, un numéro de téléphone, un IBAN ou un
+      SIREN.
+    </li>
+    <li>
+      Elle la confronte à des sources publiques : les listes noires de l'AMF et de l'ACPR, le
+      répertoire SIRENE, le BODACC, la date de création du domaine.
+    </li>
+    <li>
+      Elle renvoie une liste de signaux. Chacun porte un niveau, une phrase factuelle en français,
+      sa source, le lien pour la vérifier et la date du relevé.
+    </li>
+    <li>Tu lis les faits et tu décides.</li>
+  </ol>
+  <p>Un signal a l'un de ces niveaux :</p>
+  <ul>
+    <li>
+      <strong>{CALLOUT_LABELS.alerte}</strong> : l'entrée figure sur la liste noire de l'AMF ou de
+      l'ACPR.
+    </li>
+    <li>
+      <strong>{CALLOUT_LABELS.attention}</strong> : le domaine a été créé il y a moins de 30 jours,
+      l'établissement siège de la société est fermé ou une procédure collective est publiée au
+      BODACC.
+    </li>
+    <li>
+      <strong>{CALLOUT_LABELS.info}</strong> : l'acteur est enregistré auprès de l'AMF. C'est un
+      fait, jamais une garantie.
+    </li>
+  </ul>
+  <p>
+    La liste complète est publique : les <a href={API_SIGNALS_URL}>signaux</a> et les{' '}
+    <a href={API_SOURCES_URL}>sources avec leurs licences</a>.
+  </p>
+
+  <h2>Les limites</h2>
+  <Callout level="attention" title="une absence ne prouve rien">
+    <p>
+      Sans signal, l'API répond « Aucun signal connu dans nos sources ». Cela ne veut pas dire que
+      tout va bien : l'entrée n'est simplement dans aucune des listes consultées.
+    </p>
+  </Callout>
+  <ul>
+    <li>
+      <strong>Les listes noires arrivent après coup.</strong> Un site n'y entre qu'une fois repéré
+      par l'autorité. Un site d'arnaque ouvert hier n'y est pas encore. L'API signale aussi un
+      domaine créé il y a moins de 30 jours.
+    </li>
+    <li>
+      <strong>Le numéro affiché peut être usurpé.</strong> Lors d'un appel ou dans un SMS, un escroc
+      peut afficher le numéro de ta banque ou d'un service public. Un numéro connu à l'écran ne dit
+      pas qui appelle vraiment.
+    </li>
+    <li>
+      <strong>Un numéro attribué n'est pas un numéro de confiance.</strong> Le plan de numérotation
+      de l'ARCEP dit quel opérateur a reçu une tranche de numéros. Il ne dit rien de la personne qui
+      l'utilise.
+    </li>
+    <li>
+      <strong>Les données ont une date.</strong> Chaque signal dit quand la donnée a été relevée. Si
+      une source envoie un fichier invalide, ou qui perd plus de 20 % de ses entrées, il est rejeté
+      et l'API garde le précédent.
+    </li>
+  </ul>
+
+  <h2>Ce qu'Arnakoff ne dit jamais</h2>
+  <ul>
+    <li>
+      <strong>Jamais « sûr » ni « fiable ».</strong> Aucune source ne couvre toutes les arnaques.
+      Dire qu'une entrée est sûre serait promettre ce qu'aucune liste ne peut garantir.
+    </li>
+    <li>
+      <strong>Jamais « arnaque » à propos d'une entité nommée.</strong> L'API rapporte des faits,
+      chacun avec sa source, par exemple « Figure sur la liste noire de l'AMF depuis le 08/10/2026
+      ». Elle dit qu'une entrée figure sur une liste, pas ce qu'elle est : la décision te revient.
+    </li>
+  </ul>
+
+  <h2>En cas d'arnaque</h2>
+  <p>Si tu as payé ou donné tes coordonnées bancaires, appelle ta banque tout de suite.</p>
+  <ul>
+    {HELP.map(({ href, name, text }) => (
+      <li>
+        <a href={href}>{name}</a> : {text}
+      </li>
+    ))}
+  </ul>
+
+  <h2>Questions fréquentes</h2>
+
+  <h3>« Aucun signal » veut dire que je peux y aller ?</h3>
+  <p>
+    Non. Cela veut dire que l'entrée n'est dans aucune des sources consultées. Une arnaque récente
+    peut n'être encore sur aucune liste.
+  </p>
+
+  <h3>L'API visite-t-elle le site que je vérifie ?</h3>
+  <p>
+    Non. Aucune adresse fournie par l'utilisateur n'est appelée. Les registres sont interrogés par
+    identifiant, à travers une liste d'hôtes autorisés.
+  </p>
+
+  <h3>Que deviennent les e-mails, numéros et IBAN que je vérifie ?</h3>
+  <p>Ils ne sont jamais journalisés en clair ni transmis à un tiers.</p>
+
+  <h3>Comment une source est-elle choisie ?</h3>
+  <p>
+    Elle est publique et sa licence autorise la réutilisation commerciale. Une source absente de la{' '}
+    <a href={API_SOURCES_URL}>liste des sources</a> n'est pas utilisée.
+  </p>
+
+  <h3>Comment utiliser l'API ?</h3>
+  <p>
+    La <a href={DOCS_PATH}>documentation de l'API</a> l'explique.
+  </p>
+</Base>

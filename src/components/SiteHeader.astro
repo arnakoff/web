@@ -4,10 +4,13 @@
 // JavaScript and every link stays one tab away, at every width.
 import Logo from './Logo.astro';
 import ThemeSelect from './ThemeSelect.astro';
-import { DOCS_PATH } from '../lib/site';
+import { DOCS_PATH, HOW_IT_WORKS_PATH } from '../lib/site';
 
 /** Main navigation, in reading order. A new section adds its page here. */
-const NAV = [{ href: DOCS_PATH, label: 'Documentation' }] as const;
+const NAV = [
+  { href: HOW_IT_WORKS_PATH, label: 'Comment ça marche' },
+  { href: DOCS_PATH, label: 'Documentation' },
+] as const;
 
 interface Props {
   /** Id of the page's <main>, target of the skip link. */
