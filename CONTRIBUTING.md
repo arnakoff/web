@@ -42,10 +42,13 @@ Les pull requests venant d'un fork ou de Dependabot ne sont pas déployées : el
 2. Créer un jeton d'API Cloudflare limité à _Cloudflare Pages : Edit_ sur ce compte.
 3. Dans GitHub, créer les environnements `production` (déploiement limité à la branche `main`) et `preview`, et enregistrer le jeton dans le secret `CLOUDFLARE_API_TOKEN` de chacun.
 4. Enregistrer l'identifiant du compte Cloudflare dans la variable Actions `CLOUDFLARE_ACCOUNT_ID` du dépôt.
+5. Dans le projet Pages, onglet _Metrics_, activer Web Analytics : Cloudflare ajoute son script de mesure, sans cookie, à chaque page au déploiement suivant. La CSP l'autorise déjà.
 
 Tant que la variable n'existe pas, le job est ignoré.
 
 Les en-têtes de sécurité (CSP, HSTS, `Referrer-Policy`, `Permissions-Policy`, `X-Content-Type-Options`) sont dans `public/_headers`. `npm run build` y ajoute l'empreinte SHA-256 de chaque script en ligne des pages construites ; `npm test` vérifie que chaque page reçoit ces en-têtes et que Chromium ne signale aucune violation de la CSP, recherche de la documentation comprise.
+
+Aucun traceur : `npm test` échoue si une page envoie une requête hors du site, pose un cookie ou garde dans le navigateur autre chose que le choix du thème et l'état de la barre latérale de la documentation. La seule mesure d'audience est Cloudflare Web Analytics, ajoutée par Cloudflare au déploiement et non présente dans `dist/`.
 
 ## Règles de code
 
