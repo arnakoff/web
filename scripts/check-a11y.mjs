@@ -5,7 +5,9 @@
 // - Tab reaches every control in turn, starting with a working skip link,
 //   shows a visible focus on each one and never gets stuck;
 // - served with the headers of dist/_headers, nothing breaks the CSP, the
-//   docs search included.
+//   docs search included;
+// - no tracker: no request leaves the site, no cookie is set and browser
+//   storage holds nothing but interface state.
 // Run with `npm test` after `npm run build`. Chromium comes from
 // `npx playwright install --only-shell chromium`.
 // Callbacks given to page.evaluate run in the browser.
@@ -15,6 +17,7 @@ import { createServer } from 'node:http';
 import { extname } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { chromium } from 'playwright';
+import { THEME_KEY } from '../src/lib/theme.ts';
 import { DIST, PAGES, headersFor, requireDist, resolve } from './dist.mjs';
 
 /** Viewports every page is checked at, in CSS pixels. */
@@ -28,6 +31,17 @@ const SCHEMES = ['light', 'dark'];
 
 /** axe-core rule tags: WCAG 2.2 levels A and AA, earlier versions included. */
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+
+/**
+ * Browser storage the site may write: interface state that never leaves the
+ * browser. Session storage keys carry a `session:` prefix.
+ */
+const ALLOWED_STORAGE = new Set([
+  // The theme choice, shared with Starlight (src/lib/theme.ts).
+  THEME_KEY,
+  // Starlight's docs sidebar: which groups are open and its scroll position.
+  'session:sl-sidebar-state',
+]);
 
 /** Impacts that fail the check; lower ones are only listed. */
 const FAILING_IMPACTS = new Set(['serious', 'critical']);
@@ -176,16 +190,41 @@ async function checkKeyboard(page, url) {
 }
 
 /**
- * Reports each CSP violation of a page, which Chromium logs as a console error.
+ * Reports each CSP violation of a page, which Chromium logs as a console error,
+ * and each request that leaves the site.
  * @param {import('playwright').Page} page
  * @param {string} where
  */
-function watchCsp(page, where) {
+function watchPage(page, where) {
   page.on('console', (message) => {
     if (message.type() === 'error' && message.text().includes('Content Security Policy')) {
       errors.push(`${where}: ${message.text()}`);
     }
   });
+  page.on('request', (request) => {
+    const url = new URL(request.url());
+    if (url.protocol.startsWith('http') && url.origin !== origin) {
+      errors.push(`${where}: request to an outside origin ${url.origin}`);
+    }
+  });
+}
+
+/**
+ * Reports any cookie, and any browser storage outside ALLOWED_STORAGE.
+ * @param {import('playwright').Page} page
+ * @param {string} where
+ */
+async function checkTrackers(page, where) {
+  for (const cookie of await page.context().cookies()) {
+    errors.push(`${where}: sets the cookie ${cookie.name}`);
+  }
+  const keys = await page.evaluate(() => [
+    ...Object.keys(localStorage),
+    ...Object.keys(sessionStorage).map((key) => `session:${key}`),
+  ]);
+  for (const key of keys.filter((key) => !ALLOWED_STORAGE.has(key))) {
+    errors.push(`${where}: stores ${key} in the browser`);
+  }
 }
 
 /**
@@ -195,7 +234,7 @@ function watchCsp(page, where) {
 async function checkSearch(browser) {
   const where = `${SEARCH.path} search`;
   const page = await browser.newPage();
-  watchCsp(page, where);
+  watchPage(page, where);
   await page.goto(origin + SEARCH.path);
   await page.click('button[data-open-modal]');
   await page.fill('.pagefind-ui__search-input', SEARCH.query);
@@ -204,6 +243,7 @@ async function checkSearch(browser) {
   } catch {
     errors.push(`${where}: « ${SEARCH.query} » gives no result`);
   }
+  await checkTrackers(page, where);
   await page.close();
 }
 
@@ -216,7 +256,7 @@ try {
         const where = `${path} ${String(viewport.width)}px ${colorScheme}`;
         const context = await browser.newContext({ viewport, colorScheme });
         const page = await context.newPage();
-        watchCsp(page, where);
+        watchPage(page, where);
         const url = origin + path;
         await page.goto(url);
 
@@ -240,6 +280,7 @@ try {
         if (overflow > 0) errors.push(`${where}: scrolls sideways by ${String(overflow)} px`);
 
         for (const problem of await checkKeyboard(page, url)) errors.push(`${where}: ${problem}`);
+        await checkTrackers(page, where);
         await context.close();
       }
     }
@@ -257,5 +298,5 @@ if (errors.length > 0) {
   process.exit(1);
 }
 console.log(
-  `dist/ accessible: ${String(PAGES.length)} pages at ${VIEWPORTS.map(({ width }) => `${String(width)}px`).join(' and ')}, ${SCHEMES.join(' and ')}: axe WCAG 2.2 AA, overflow, keyboard and CSP checked, docs search included.`,
+  `dist/ accessible: ${String(PAGES.length)} pages at ${VIEWPORTS.map(({ width }) => `${String(width)}px`).join(' and ')}, ${SCHEMES.join(' and ')}: axe WCAG 2.2 AA, overflow, keyboard, CSP and trackers checked, docs search included.`,
 );

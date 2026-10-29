@@ -5,10 +5,14 @@
 # - style-src 'unsafe-inline': Starlight and Expressive Code write `style`
 #   attributes, which hashes cannot allow; scripts stay hash-only.
 # - img-src data:: inline SVG icons in the CSS.
+# - static.cloudflareinsights.com and cloudflareinsights.com: Cloudflare Web
+#   Analytics, cookieless, whose beacon Cloudflare Pages adds to every page
+#   once it is enabled on the project (CONTRIBUTING.md). Nothing else may
+#   leave the site: `npm test` fails on any outside request.
 # A new outside origin (the API for the online checker) goes into
 # connect-src here, in the same pull request.
 /*
-  Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval' {inline-script-hashes}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com/beacon.min.js {inline-script-hashes}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
   Strict-Transport-Security: max-age=63072000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
