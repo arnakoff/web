@@ -70,7 +70,7 @@ npm run build
 npm test
 ```
 
-`npm test` passe aussi chaque page dans Chromium à 375 px et 1440 px, en clair et en sombre : analyse axe (WCAG 2.2 AA, échec sur toute violation sérieuse ou critique), parcours au clavier avec focus visible, pas de défilement horizontal. Une fois par poste : `npx playwright install --only-shell chromium`.
+`npm test` passe aussi chaque page dans Chromium à 375 px et 1440 px, en clair et en sombre : analyse axe (WCAG 2.2 AA, échec sur toute violation sérieuse ou critique), parcours au clavier avec focus visible, pas de défilement horizontal. Il passe ensuite Lighthouse sur chaque page sauf la 404, en préréglage mobile et ordinateur : performance d'au moins 95, accessibilité, bonnes pratiques et référencement à 100. Une fois par poste : `npx playwright install --only-shell chromium`.
 
 Pour un changement visible, regarde chaque page touchée à 375 px et 1440 px de large, en thème clair et sombre : pas de défilement horizontal, navigation au clavier possible, focus visible. Le site vise le niveau AA du [RGAA](https://accessibilite.numerique.gouv.fr/).
 

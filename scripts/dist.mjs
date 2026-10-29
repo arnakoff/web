@@ -2,7 +2,9 @@
 // it must have and how Cloudflare Pages maps a URL path to one of its files.
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
+import { extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
@@ -86,4 +88,64 @@ export function resolve(pathname) {
       .filter((file) => file.startsWith(DIST))
       .find((file) => existsSync(file) && statSync(file).isFile()) ?? null
   );
+}
+
+/** @type {Record<string, string>} */
+const CONTENT_TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.json': 'application/json',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.woff2': 'font/woff2',
+  '.xml': 'application/xml',
+};
+
+/**
+ * Serves dist/ on a free local port the way Cloudflare Pages does, 404 page
+ * and headers of dist/_headers included.
+ * @returns {Promise<{ origin: string, close: () => Promise<void> }>}
+ */
+export async function serveDist() {
+  const server = createServer((request, response) => {
+    const { pathname } = new URL(request.url ?? '/', 'http://localhost');
+    const file = resolve(pathname);
+    const status = file ? 200 : 404;
+    const served = file ?? resolve('/404');
+    if (!served) {
+      response.writeHead(404).end();
+      return;
+    }
+    readFile(served).then(
+      (body) => {
+        response
+          .writeHead(status, {
+            ...headersFor(pathname),
+            'Content-Type': CONTENT_TYPES[extname(served)] ?? 'application/octet-stream',
+          })
+          .end(body);
+      },
+      () => {
+        response.writeHead(500).end();
+      },
+    );
+  });
+  await new Promise((done) => {
+    server.listen(0, '127.0.0.1', () => {
+      done(undefined);
+    });
+  });
+  const address = server.address();
+  if (address === null || typeof address === 'string') throw new Error('no server port');
+  return {
+    origin: `http://127.0.0.1:${String(address.port)}`,
+    close: () =>
+      new Promise((done) => {
+        server.close(() => {
+          done();
+        });
+      }),
+  };
 }
