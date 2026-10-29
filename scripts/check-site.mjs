@@ -2,16 +2,11 @@
 // internal link resolves to a built file or, for `#id`, to an element of its
 // page, and every page carries its required metadata, share image included.
 // Run with `npm test` after `npm run build`.
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
+import { relative, sep } from 'node:path';
 import { FAVICON_SVG, ICONS, SHARE_IMAGE } from '../src/lib/meta.ts';
 import { SITE_URL } from '../src/lib/site.ts';
-
-const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
-
-/** Every page the site must build, as its URL path. */
-const PAGES = ['/', '/docs/', '/404'];
+import { DIST, PAGES, htmlFiles, requireDist, resolve } from './dist.mjs';
 
 /** Every PNG image the site must serve, with its size in pixels. */
 const IMAGES = [
@@ -26,33 +21,6 @@ const SHARE_IMAGE_URL = new URL(SHARE_IMAGE.path, SITE_URL).href;
 const errors = [];
 /** @param {string} file @param {string} message */
 const fail = (file, message) => errors.push(`${file}: ${message}`);
-
-/**
- * Lists every HTML file under a directory.
- * @param {string} dir
- * @returns {string[]}
- */
-function htmlFiles(dir) {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(dir, entry.name);
-    if (entry.isDirectory()) return htmlFiles(path);
-    return entry.name.endsWith('.html') ? [path] : [];
-  });
-}
-
-/**
- * Maps a URL path to the file Cloudflare Pages would serve, or null.
- * @param {string} pathname
- */
-function resolve(pathname) {
-  const clean = decodeURIComponent(pathname).replace(/^\/+|\/+$/g, '');
-  const candidates = [clean, join(clean, 'index.html'), `${clean}.html`];
-  return (
-    candidates
-      .map((candidate) => join(DIST, candidate))
-      .find((file) => existsSync(file) && statSync(file).isFile()) ?? null
-  );
-}
 
 /**
  * Returns the value of an attribute inside one tag, or null.
@@ -73,10 +41,7 @@ function findTag(html, pattern) {
   return new RegExp(pattern, 'i').exec(html)?.[0] ?? null;
 }
 
-if (!existsSync(DIST)) {
-  console.error('dist/ is missing: run `npm run build` first.');
-  process.exit(1);
-}
+requireDist();
 
 for (const page of PAGES) {
   if (!resolve(page)) fail(page, 'expected page is not built');

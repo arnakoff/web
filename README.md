@@ -19,20 +19,21 @@ Il te faut Node.js 26 (version exacte dans `.node-version`) et npm.
 
 ```sh
 npm ci
+npx playwright install --only-shell chromium   # navigateur des tests d'accessibilité
 npm run dev      # http://localhost:4321
 ```
 
 ## Commandes
 
-| Commande          | Rôle                                                                           |
-| ----------------- | ------------------------------------------------------------------------------ |
-| `npm run dev`     | Serveur de développement.                                                      |
-| `npm run check`   | `astro check`, ESLint et Prettier, sans erreur ni avertissement.               |
-| `npm run format`  | Formate le code avec Prettier.                                                 |
-| `npm run build`   | Construit le site dans `dist/`.                                                |
-| `npm test`        | Vérifie `dist/` : pages attendues, liens internes, métadonnées de chaque page. |
-| `npm run preview` | Sert `dist/` en local.                                                         |
-| `npm run icons`   | Régénère les icônes PNG et l'image de partage depuis `public/favicon.svg`.     |
+| Commande          | Rôle                                                                                                       |
+| ----------------- | ---------------------------------------------------------------------------------------------------------- |
+| `npm run dev`     | Serveur de développement.                                                                                  |
+| `npm run check`   | `astro check`, ESLint et Prettier, sans erreur ni avertissement.                                           |
+| `npm run format`  | Formate le code avec Prettier.                                                                             |
+| `npm run build`   | Construit le site dans `dist/`.                                                                            |
+| `npm test`        | Vérifie `dist/` : pages attendues, liens internes, métadonnées, accessibilité (axe, clavier, débordement). |
+| `npm run preview` | Sert `dist/` en local.                                                                                     |
+| `npm run icons`   | Régénère les icônes PNG et l'image de partage depuis `public/favicon.svg`.                                 |
 
 La CI lance `check`, `build` et `test` sur chaque pull request.
 

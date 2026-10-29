@@ -27,7 +27,7 @@ Règles de rédaction, les mêmes que pour l'API :
 - Les couleurs passent uniquement par les jetons de `src/styles/tokens.css`, en thème clair et en thème sombre.
 - Chaque lien externe ou URL absolue est défini une seule fois dans `src/lib/site.ts`.
 - Animations en CSS uniquement, qui respectent `prefers-reduced-motion`. Pas de JavaScript côté client sans une fonctionnalité qui l'exige.
-- Une nouvelle page s'ajoute à la liste des pages vérifiées dans `scripts/check-site.mjs`.
+- Une nouvelle page s'ajoute à la liste des pages vérifiées dans `scripts/dist.mjs`.
 - Les en-têtes de sécurité vivent dans `public/_headers` : un nouveau script en ligne ou une nouvelle origine externe met à jour la CSP dans la même pull request.
 - Une dépendance ajoutée ou mise à jour est épinglée à une version exacte, vérifiée sur le registre npm, avec des plages de pairs compatibles.
 
@@ -40,6 +40,8 @@ npm run check   # 0 erreur, 0 avertissement
 npm run build
 npm test
 ```
+
+`npm test` passe aussi chaque page dans Chromium à 375 px et 1440 px, en clair et en sombre : analyse axe (WCAG 2.2 AA, échec sur toute violation sérieuse ou critique), parcours au clavier avec focus visible, pas de défilement horizontal. Une fois par poste : `npx playwright install --only-shell chromium`.
 
 Pour un changement visible, regarde chaque page touchée à 375 px et 1440 px de large, en thème clair et sombre : pas de défilement horizontal, navigation au clavier possible, focus visible. Le site vise le niveau AA du [RGAA](https://accessibilite.numerique.gouv.fr/).
 

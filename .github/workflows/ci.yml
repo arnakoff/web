@@ -27,6 +27,9 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
+      # Chromium for the accessibility check of npm test, at the version
+      # pinned by the playwright package.
+      - run: npx playwright install --with-deps --only-shell chromium
       - run: npm run check
       - run: npm run build
       - run: npm test
