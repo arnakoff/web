@@ -30,6 +30,17 @@ export const ROADMAP_URL = 'https://github.com/orgs/arnakoff/projects/1';
 export const API_SOURCES_URL = `${REPO_API_URL}/blob/main/docs/sources.md`;
 export const API_SIGNALS_URL = `${REPO_API_URL}/blob/main/docs/signals.md`;
 
+/** Standards of the API (versioning, deprecation) and its published releases. */
+export const API_STANDARDS_URL = `${REPO_API_URL}/blob/main/docs/standards.md`;
+export const API_RELEASES_URL = `${REPO_API_URL}/releases`;
+
+/** Standards the API follows, at their official source. */
+export const STANDARD_URLS = {
+  semver: 'https://semver.org/lang/fr/',
+  deprecation: 'https://www.rfc-editor.org/rfc/rfc9745',
+  sunset: 'https://www.rfc-editor.org/rfc/rfc8594',
+} as const;
+
 /** Official services for a scam victim, each checked on its own site on 29/10/2026. */
 export const HELP_URLS = {
   cyber17: 'https://www.17cyber.gouv.fr/',

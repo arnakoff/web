@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 export const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 
 /** Every page the site must build, as its URL path. */
-export const PAGES = ['/', '/comment-ca-marche/', '/docs/', '/404'];
+export const PAGES = ['/', '/comment-ca-marche/', '/docs/', '/docs/versions/', '/404'];
 
 /** Stops the calling script when there is no build to check. */
 export function requireDist() {
