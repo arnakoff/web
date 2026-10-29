@@ -30,6 +30,23 @@ Le workflow `Content sync` le fait chaque jour et ouvre une pull request sur la 
 
 Tant que la variable n'existe pas, le workflow est ignoré.
 
+## Déploiement
+
+Le site est hébergé sur Cloudflare Pages. Le job `Deploy` du workflow `CI` publie le `dist/` vérifié avec `wrangler` (version de `package-lock.json`) : la production à chaque push sur `main`, une prévisualisation pour chaque pull request. L'adresse de la prévisualisation s'affiche dans la pull request, sur son déploiement (environnement `preview`).
+
+Les pull requests venant d'un fork ou de Dependabot ne sont pas déployées : elles ne reçoivent aucun secret.
+
+À configurer une fois par le propriétaire :
+
+1. Créer dans Cloudflare un projet Pages `arnakoff-web` en envoi direct (_Direct Upload_), avec `main` comme branche de production, puis y rattacher le domaine `arnakoff.com`.
+2. Créer un jeton d'API Cloudflare limité à _Cloudflare Pages : Edit_ sur ce compte.
+3. Dans GitHub, créer les environnements `production` (déploiement limité à la branche `main`) et `preview`, et enregistrer le jeton dans le secret `CLOUDFLARE_API_TOKEN` de chacun.
+4. Enregistrer l'identifiant du compte Cloudflare dans la variable Actions `CLOUDFLARE_ACCOUNT_ID` du dépôt.
+
+Tant que la variable n'existe pas, le job est ignoré.
+
+Les en-têtes de sécurité (CSP, HSTS, `Referrer-Policy`, `Permissions-Policy`, `X-Content-Type-Options`) sont dans `public/_headers`. `npm run build` y ajoute l'empreinte SHA-256 de chaque script en ligne des pages construites ; `npm test` vérifie que chaque page reçoit ces en-têtes et que Chromium ne signale aucune violation de la CSP, recherche de la documentation comprise.
+
 ## Règles de code
 
 - Pas de duplication : avant d'écrire un composant, un utilitaire ou un style, cherche dans `src/components`, `src/lib` et `src/styles`, et étends ce qui existe.

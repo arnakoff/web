@@ -1,9 +1,11 @@
 // Checks the built site in dist/: expected pages and icons exist, every
 // internal link resolves to a built file or, for `#id`, to an element of its
 // page, every page carries its required metadata, share image included, and
-// search engines get robots.txt, a sitemap of the pages and structured data.
+// search engines get robots.txt, a sitemap of the pages and structured data,
+// and dist/_headers gives every page the security headers and a CSP that
+// allows its inline scripts.
 // Run with `npm test` after `npm run build`.
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { relative, sep } from 'node:path';
 import {
   FAVICON_SVG,
@@ -14,7 +16,17 @@ import {
   SITEMAP_PATH,
 } from '../src/lib/meta.ts';
 import { SITE_URL } from '../src/lib/site.ts';
-import { DIST, PAGES, htmlFiles, requireDist, resolve } from './dist.mjs';
+import {
+  DIST,
+  HASHES_PLACEHOLDER,
+  HEADERS_FILE,
+  PAGES,
+  headersFor,
+  htmlFiles,
+  inlineScriptHashes,
+  requireDist,
+  resolve,
+} from './dist.mjs';
 
 /** Every PNG image the site must serve, with its size in pixels. */
 const IMAGES = [
@@ -30,6 +42,18 @@ const SITEMAP_URL = new URL(SITEMAP_PATH, SITE_URL).href;
 
 /** Page that search engines must not index. */
 const NOT_FOUND_PAGE = '/404';
+
+/** Security headers every response must carry, from public/_headers. */
+const SECURITY_HEADERS = [
+  'Content-Security-Policy',
+  'Strict-Transport-Security',
+  'X-Content-Type-Options',
+  'Referrer-Policy',
+  'Permissions-Policy',
+];
+
+/** Cloudflare Pages ignores a _headers line longer than this. */
+const MAX_HEADERS_LINE = 2000;
 
 /** @type {string[]} */
 const errors = [];
@@ -117,10 +141,32 @@ else {
   }
 }
 
+// _headers: filled by the build, short enough lines, every security header.
+const headersText = existsSync(HEADERS_FILE) ? readFileSync(HEADERS_FILE, 'utf8') : '';
+if (!headersText) fail('/_headers', 'is not built');
+else if (headersText.includes(HASHES_PLACEHOLDER)) {
+  fail('/_headers', `${HASHES_PLACEHOLDER} is not replaced: run scripts/build-headers.mjs`);
+} else if (headersText.split('\n').some((line) => line.length > MAX_HEADERS_LINE)) {
+  fail('/_headers', `a line is longer than ${String(MAX_HEADERS_LINE)} characters`);
+}
+
 for (const file of htmlFiles(DIST)) {
   const name = relative(DIST, file).split(sep).join('/');
   const html = readFileSync(file, 'utf8');
   const pageUrl = new URL(`/${name.replace(/(^|\/)index\.html$/, '$1')}`, SITE_URL);
+
+  // Security headers, and a CSP that allows each inline script of the page.
+  if (headersText) {
+    const headers = headersFor(pageUrl.pathname);
+    for (const header of SECURITY_HEADERS) {
+      if (!headers[header]) fail(name, `${header} header is missing`);
+    }
+    const scriptSrc =
+      /(?:^|;)\s*script-src\s([^;]*)/.exec(headers['Content-Security-Policy'] ?? '')?.[1] ?? '';
+    for (const hash of inlineScriptHashes(html)) {
+      if (!scriptSrc.split(/\s+/).includes(hash)) fail(name, `CSP script-src lacks ${hash}`);
+    }
+  }
 
   // Metadata.
   if (attribute(findTag(html, '<html\\b[^>]*>') ?? '', 'lang') !== 'fr')
@@ -200,5 +246,5 @@ if (errors.length > 0) {
   process.exit(1);
 }
 console.log(
-  `dist/ OK: ${String(PAGES.length)} expected pages, ${String(IMAGES.length + 1)} icons and images, internal links, metadata, robots.txt, sitemap and JSON-LD checked.`,
+  `dist/ OK: ${String(PAGES.length)} expected pages, ${String(IMAGES.length + 1)} icons and images, internal links, metadata, robots.txt, sitemap, JSON-LD and security headers checked.`,
 );

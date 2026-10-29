@@ -3,7 +3,9 @@
 // - axe-core finds no serious or critical violation of WCAG 2.2 A and AA;
 // - the page does not scroll sideways;
 // - Tab reaches every control in turn, starting with a working skip link,
-//   shows a visible focus on each one and never gets stuck.
+//   shows a visible focus on each one and never gets stuck;
+// - served with the headers of dist/_headers, nothing breaks the CSP, the
+//   docs search included.
 // Run with `npm test` after `npm run build`. Chromium comes from
 // `npx playwright install --only-shell chromium`.
 // Callbacks given to page.evaluate run in the browser.
@@ -13,7 +15,7 @@ import { createServer } from 'node:http';
 import { extname } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { chromium } from 'playwright';
-import { DIST, PAGES, requireDist, resolve } from './dist.mjs';
+import { DIST, PAGES, headersFor, requireDist, resolve } from './dist.mjs';
 
 /** Viewports every page is checked at, in CSS pixels. */
 const VIEWPORTS = [
@@ -43,6 +45,9 @@ const ACCEPTED = [
   },
 ];
 
+/** Page where the docs search is run, and a word it must find. */
+const SEARCH = { path: '/docs/', query: 'API' };
+
 /** More tab stops than this on one page means focus never cycles back. */
 const MAX_TAB_STOPS = 200;
 
@@ -66,7 +71,7 @@ const notes = [];
 
 requireDist();
 
-// Serves dist/ the way Cloudflare Pages does, 404 page included.
+// Serves dist/ the way Cloudflare Pages does, 404 page and headers included.
 const server = createServer((request, response) => {
   const { pathname } = new URL(request.url ?? '/', 'http://localhost');
   const file = resolve(pathname);
@@ -80,6 +85,7 @@ const server = createServer((request, response) => {
     (body) => {
       response
         .writeHead(status, {
+          ...headersFor(pathname),
           'Content-Type': CONTENT_TYPES[extname(served)] ?? 'application/octet-stream',
         })
         .end(body);
@@ -169,14 +175,48 @@ async function checkKeyboard(page, url) {
   return problems;
 }
 
+/**
+ * Reports each CSP violation of a page, which Chromium logs as a console error.
+ * @param {import('playwright').Page} page
+ * @param {string} where
+ */
+function watchCsp(page, where) {
+  page.on('console', (message) => {
+    if (message.type() === 'error' && message.text().includes('Content Security Policy')) {
+      errors.push(`${where}: ${message.text()}`);
+    }
+  });
+}
+
+/**
+ * Runs the docs search, which loads Pagefind's worker and WebAssembly.
+ * @param {import('playwright').Browser} browser
+ */
+async function checkSearch(browser) {
+  const where = `${SEARCH.path} search`;
+  const page = await browser.newPage();
+  watchCsp(page, where);
+  await page.goto(origin + SEARCH.path);
+  await page.click('button[data-open-modal]');
+  await page.fill('.pagefind-ui__search-input', SEARCH.query);
+  try {
+    await page.waitForSelector('.pagefind-ui__result', { timeout: 10_000 });
+  } catch {
+    errors.push(`${where}: « ${SEARCH.query} » gives no result`);
+  }
+  await page.close();
+}
+
 const browser = await chromium.launch();
 try {
+  await checkSearch(browser);
   for (const path of PAGES) {
     for (const viewport of VIEWPORTS) {
       for (const colorScheme of SCHEMES) {
         const where = `${path} ${String(viewport.width)}px ${colorScheme}`;
         const context = await browser.newContext({ viewport, colorScheme });
         const page = await context.newPage();
+        watchCsp(page, where);
         const url = origin + path;
         await page.goto(url);
 
@@ -217,5 +257,5 @@ if (errors.length > 0) {
   process.exit(1);
 }
 console.log(
-  `dist/ accessible: ${String(PAGES.length)} pages at ${VIEWPORTS.map(({ width }) => `${String(width)}px`).join(' and ')}, ${SCHEMES.join(' and ')}: axe WCAG 2.2 AA, overflow and keyboard checked.`,
+  `dist/ accessible: ${String(PAGES.length)} pages at ${VIEWPORTS.map(({ width }) => `${String(width)}px`).join(' and ')}, ${SCHEMES.join(' and ')}: axe WCAG 2.2 AA, overflow, keyboard and CSP checked, docs search included.`,
 );
