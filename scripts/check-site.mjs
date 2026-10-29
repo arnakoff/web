@@ -1,10 +1,18 @@
 // Checks the built site in dist/: expected pages and icons exist, every
 // internal link resolves to a built file or, for `#id`, to an element of its
-// page, and every page carries its required metadata, share image included.
+// page, every page carries its required metadata, share image included, and
+// search engines get robots.txt, a sitemap of the pages and structured data.
 // Run with `npm test` after `npm run build`.
 import { readFileSync } from 'node:fs';
 import { relative, sep } from 'node:path';
-import { FAVICON_SVG, ICONS, SHARE_IMAGE } from '../src/lib/meta.ts';
+import {
+  FAVICON_SVG,
+  ICONS,
+  OG_LOCALE,
+  SHARE_IMAGE,
+  SITE_NAME,
+  SITEMAP_PATH,
+} from '../src/lib/meta.ts';
 import { SITE_URL } from '../src/lib/site.ts';
 import { DIST, PAGES, htmlFiles, requireDist, resolve } from './dist.mjs';
 
@@ -16,6 +24,12 @@ const IMAGES = [
 
 /** Absolute URL that every page gives as its `og:image`. */
 const SHARE_IMAGE_URL = new URL(SHARE_IMAGE.path, SITE_URL).href;
+
+/** Absolute URL of the sitemap index, as robots.txt gives it. */
+const SITEMAP_URL = new URL(SITEMAP_PATH, SITE_URL).href;
+
+/** Page that search engines must not index. */
+const NOT_FOUND_PAGE = '/404';
 
 /** @type {string[]} */
 const errors = [];
@@ -39,6 +53,16 @@ function attribute(tag, name) {
  */
 function findTag(html, pattern) {
   return new RegExp(pattern, 'i').exec(html)?.[0] ?? null;
+}
+
+/**
+ * Returns the `content` of the `<meta>` whose `name` or `property` is a key, or null.
+ * @param {string} html
+ * @param {string} key
+ */
+function metaContent(html, key) {
+  const tag = findTag(html, `<meta\\b[^>]*(?:name|property)=["']?${key}["'\\s/>][^>]*>`);
+  return tag ? attribute(tag, 'content') : null;
 }
 
 requireDist();
@@ -66,6 +90,33 @@ for (const { path, width, height } of IMAGES) {
   }
 }
 
+// robots.txt and the sitemap: every expected page but the 404, nothing else.
+const robots = resolve('/robots.txt');
+if (!robots) fail('/robots.txt', 'is not built');
+else if (!readFileSync(robots, 'utf8').split('\n').includes(`Sitemap: ${SITEMAP_URL}`)) {
+  fail('/robots.txt', `does not point at ${SITEMAP_URL}`);
+}
+/** @param {string} xml */
+const locs = (xml) => Array.from(xml.matchAll(/<loc>([^<]+)<\/loc>/g), (match) => match[1] ?? '');
+const sitemapIndex = resolve(SITEMAP_PATH);
+if (!sitemapIndex) fail(SITEMAP_PATH, 'is not built');
+else {
+  const listed = locs(readFileSync(sitemapIndex, 'utf8')).flatMap((loc) => {
+    const sitemap = resolve(new URL(loc).pathname);
+    if (!sitemap) fail(SITEMAP_PATH, `lists ${loc}, which is not built`);
+    return sitemap ? locs(readFileSync(sitemap, 'utf8')) : [];
+  });
+  const expected = PAGES.filter((page) => page !== NOT_FOUND_PAGE).map(
+    (page) => new URL(page, SITE_URL).href,
+  );
+  for (const url of expected) {
+    if (!listed.includes(url)) fail('sitemap', `${url} is missing`);
+  }
+  for (const url of listed) {
+    if (!expected.includes(url)) fail('sitemap', `${url} is not an expected page`);
+  }
+}
+
 for (const file of htmlFiles(DIST)) {
   const name = relative(DIST, file).split(sep).join('/');
   const html = readFileSync(file, 'utf8');
@@ -89,9 +140,43 @@ for (const file of htmlFiles(DIST)) {
   if (!findTag(html, '<link\\b[^>]*rel=["\']?icon["\']?[^>]*>')) {
     fail(name, '<link rel="icon"> is missing');
   }
-  const ogImage = findTag(html, '<meta\\b[^>]*property=["\']?og:image["\']?[^>]*>');
-  if (attribute(ogImage ?? '', 'content') !== SHARE_IMAGE_URL) {
+  if (metaContent(html, 'og:image') !== SHARE_IMAGE_URL) {
     fail(name, `<meta property="og:image"> is not ${SHARE_IMAGE_URL}`);
+  }
+  if (metaContent(html, 'og:locale') !== OG_LOCALE) {
+    fail(name, `<meta property="og:locale"> is not ${OG_LOCALE}`);
+  }
+  if (metaContent(html, 'og:site_name') !== SITE_NAME) {
+    fail(name, `<meta property="og:site_name"> is not ${SITE_NAME}`);
+  }
+  const sitemapLink = findTag(html, '<link\\b[^>]*rel=["\']?sitemap["\'\\s>][^>]*>');
+  if (attribute(sitemapLink ?? '', 'href') !== SITEMAP_PATH) {
+    fail(name, `<link rel="sitemap"> does not point at ${SITEMAP_PATH}`);
+  }
+  if (file === resolve(NOT_FOUND_PAGE) && metaContent(html, 'robots') !== 'noindex') {
+    fail(name, '<meta name="robots" content="noindex"> is missing');
+  }
+
+  // Structured data: valid JSON, and the home page describes the organization.
+  const jsonLd = Array.from(
+    html.matchAll(/<script\b[^>]*type=["']?application\/ld\+json["']?[^>]*>([\s\S]*?)<\/script>/gi),
+    (match) => match[1] ?? '',
+  ).flatMap((text) => {
+    try {
+      return [/** @type {Record<string, unknown>} */ (JSON.parse(text))];
+    } catch {
+      fail(name, 'JSON-LD is not valid JSON');
+      return [];
+    }
+  });
+  if (file === resolve('/')) {
+    const organization = jsonLd.find((data) => data['@type'] === 'Organization');
+    const home = new URL('/', SITE_URL).href;
+    if (!organization) fail(name, 'JSON-LD Organization is missing');
+    else if (organization.url !== home) fail(name, `JSON-LD Organization url is not ${home}`);
+    else if (!resolve(new URL(String(organization.logo), SITE_URL).pathname)) {
+      fail(name, `JSON-LD Organization logo ${String(organization.logo)} is not built`);
+    }
   }
 
   // Internal links, in-page anchors and assets.
@@ -115,5 +200,5 @@ if (errors.length > 0) {
   process.exit(1);
 }
 console.log(
-  `dist/ OK: ${String(PAGES.length)} expected pages, ${String(IMAGES.length + 1)} icons and images, internal links and metadata checked.`,
+  `dist/ OK: ${String(PAGES.length)} expected pages, ${String(IMAGES.length + 1)} icons and images, internal links, metadata, robots.txt, sitemap and JSON-LD checked.`,
 );

@@ -1,13 +1,20 @@
 ---
 import Base from '../layouts/Base.astro';
 import Button from '../components/Button.astro';
-import { DOCS_PATH } from '../lib/site';
+import { SITE_DESCRIPTION, SITE_NAME, jsonLdScript, organizationJsonLd } from '../lib/meta';
+import { DOCS_PATH, SITE_URL } from '../lib/site';
 
-const title = 'Arnakoff';
-const description = "Arnakoff, l'API française de signaux sourcés contre les arnaques.";
+const title = SITE_NAME;
+const description = SITE_DESCRIPTION;
 ---
 
 <Base title={title} description={description}>
+  <script
+    slot="head"
+    type="application/ld+json"
+    is:inline
+    set:html={jsonLdScript(organizationJsonLd(SITE_URL))}
+  />
   <h1>{title}</h1>
   <p>Le site est en construction.</p>
   <p>

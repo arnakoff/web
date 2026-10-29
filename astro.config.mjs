@@ -1,7 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
-import { FAVICON_SVG, ICON_LINKS, shareImageMeta } from './src/lib/meta.ts';
+import { FAVICON_SVG, ICON_LINKS, OG_LOCALE, SITE_NAME, shareImageMeta } from './src/lib/meta.ts';
 import { REPO_WEB_URL, SITE_URL } from './src/lib/site.ts';
 
 export default defineConfig({
@@ -19,6 +19,11 @@ export default defineConfig({
       head: [
         ...ICON_LINKS.map((attrs) => ({ tag: /** @type {const} */ ('link'), attrs })),
         ...shareImageMeta(SITE_URL).map((attrs) => ({ tag: /** @type {const} */ ('meta'), attrs })),
+        // Replace Starlight's defaults so that docs and showcase pages agree.
+        ...[
+          { property: 'og:locale', content: OG_LOCALE },
+          { property: 'og:site_name', content: SITE_NAME },
+        ].map((attrs) => ({ tag: /** @type {const} */ ('meta'), attrs })),
       ],
       social: [{ icon: 'github', label: 'GitHub', href: REPO_WEB_URL }],
       customCss: ['./src/styles/tokens.css', './src/styles/starlight.css'],

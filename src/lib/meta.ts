@@ -1,5 +1,19 @@
-// Icons and share image of every page, showcase and docs alike. The PNG files
-// in public/ are generated from public/favicon.svg by scripts/build-icons.mjs.
+// Metadata of every page, showcase and docs alike: name, locale, icons, share
+// image and structured data. The PNG files in public/ are generated from
+// public/favicon.svg by scripts/build-icons.mjs.
+import { ORG_GITHUB_URL } from './site.ts';
+
+/** Name of the site, as social networks show it. */
+export const SITE_NAME = 'Arnakoff';
+
+/** What Arnakoff is, in one sentence: home page and structured data. */
+export const SITE_DESCRIPTION = "Arnakoff, l'API française de signaux sourcés contre les arnaques.";
+
+/** Open Graph locale, in the `language_TERRITORY` form the protocol asks for. */
+export const OG_LOCALE = 'fr_FR';
+
+/** Sitemap index, built by @astrojs/sitemap, which Starlight adds when `site` is set. */
+export const SITEMAP_PATH = '/sitemap-index.xml';
 
 /** Logo copied from arnakoff/.github (profile/assets/logo.svg). */
 export const FAVICON_SVG = '/favicon.svg';
@@ -39,4 +53,30 @@ export function shareImageMeta(site: string | URL) {
     { property: 'og:image:alt', content: SHARE_IMAGE.alt },
     { name: 'twitter:image', content: url },
   ];
+}
+
+/**
+ * The schema.org `Organization` of Arnakoff, as JSON-LD for the home page.
+ * Only facts the site already states: name, URL, logo, description, GitHub.
+ * @param site Public origin, to make the URLs absolute.
+ */
+export function organizationJsonLd(site: string | URL) {
+  const logo = ICONS.find(({ rel }) => rel === 'apple-touch-icon') ?? ICONS[0];
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: SITE_NAME,
+    url: new URL('/', site).href,
+    logo: new URL(logo.path, site).href,
+    description: SITE_DESCRIPTION,
+    sameAs: [ORG_GITHUB_URL],
+  };
+}
+
+/**
+ * Serializes JSON-LD for an inline `<script type="application/ld+json">`.
+ * `<` is escaped so that no value can close the script element.
+ */
+export function jsonLdScript(data: unknown) {
+  return JSON.stringify(data).replaceAll('<', '\\u003c');
 }

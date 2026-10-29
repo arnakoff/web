@@ -19,9 +19,10 @@ export const DOCS_URL = new URL(DOCS_PATH, SITE_URL).href;
  */
 export const API_URL = 'https://api.arnakoff.com/v1';
 
-/** Source repositories. */
-export const REPO_WEB_URL = 'https://github.com/arnakoff/web';
-export const REPO_API_URL = 'https://github.com/arnakoff/api';
+/** GitHub organization of Arnakoff, and its source repositories. */
+export const ORG_GITHUB_URL = 'https://github.com/arnakoff';
+export const REPO_WEB_URL = `${ORG_GITHUB_URL}/web`;
+export const REPO_API_URL = `${ORG_GITHUB_URL}/api`;
 
 /** Roadmap of the Arnakoff organization, linked from the API README. */
 export const ROADMAP_URL = 'https://github.com/orgs/arnakoff/projects/1';
