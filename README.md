@@ -25,16 +25,16 @@ npm run dev      # http://localhost:4321
 
 ## Commandes
 
-| Commande          | Rôle                                                                                                       |
-| ----------------- | ---------------------------------------------------------------------------------------------------------- |
-| `npm run dev`     | Serveur de développement.                                                                                  |
-| `npm run check`   | `astro check`, ESLint et Prettier, sans erreur ni avertissement.                                           |
-| `npm run format`  | Formate le code avec Prettier.                                                                             |
-| `npm run build`   | Construit le site dans `dist/`.                                                                            |
-| `npm test`        | Vérifie `dist/` : pages attendues, liens internes, métadonnées, accessibilité (axe, clavier, débordement). |
-| `npm run preview` | Sert `dist/` en local.                                                                                     |
-| `npm run sync`    | Copie sources, signaux, contrat OpenAPI et notes de version depuis `../arnakoff` dans `src/content/api/`.  |
-| `npm run icons`   | Régénère les icônes PNG et l'image de partage depuis `public/favicon.svg`.                                 |
+| Commande          | Rôle                                                                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run dev`     | Serveur de développement.                                                                                                      |
+| `npm run check`   | `astro check`, ESLint et Prettier, sans erreur ni avertissement.                                                               |
+| `npm run format`  | Formate le code avec Prettier.                                                                                                 |
+| `npm run build`   | Construit le site dans `dist/`.                                                                                                |
+| `npm test`        | Vérifie `dist/` : pages attendues, liens internes, métadonnées, accessibilité (axe, clavier, débordement), budgets Lighthouse. |
+| `npm run preview` | Sert `dist/` en local.                                                                                                         |
+| `npm run sync`    | Copie sources, signaux, contrat OpenAPI et notes de version depuis `../arnakoff` dans `src/content/api/`.                      |
+| `npm run icons`   | Régénère les icônes PNG et l'image de partage depuis `public/favicon.svg`.                                                     |
 
 La CI lance `check`, `build` et `test` sur chaque pull request.
 

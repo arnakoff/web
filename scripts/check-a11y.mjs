@@ -12,13 +12,10 @@
 // `npx playwright install --only-shell chromium`.
 // Callbacks given to page.evaluate run in the browser.
 /* global document, getComputedStyle, HTMLAnchorElement, location, Node, window */
-import { readFile } from 'node:fs/promises';
-import { createServer } from 'node:http';
-import { extname } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { chromium } from 'playwright';
 import { THEME_KEY } from '../src/lib/theme.ts';
-import { DIST, PAGES, headersFor, requireDist, resolve } from './dist.mjs';
+import { DIST, PAGES, requireDist, serveDist } from './dist.mjs';
 
 /** Viewports every page is checked at, in CSS pixels. */
 const VIEWPORTS = [
@@ -65,19 +62,6 @@ const SEARCH = { path: '/docs/', query: 'API' };
 /** More tab stops than this on one page means focus never cycles back. */
 const MAX_TAB_STOPS = 200;
 
-/** @type {Record<string, string>} */
-const CONTENT_TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.mjs': 'text/javascript; charset=utf-8',
-  '.json': 'application/json',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.woff2': 'font/woff2',
-  '.xml': 'application/xml',
-};
-
 /** @type {string[]} */
 const errors = [];
 /** @type {string[]} */
@@ -85,38 +69,7 @@ const notes = [];
 
 requireDist();
 
-// Serves dist/ the way Cloudflare Pages does, 404 page and headers included.
-const server = createServer((request, response) => {
-  const { pathname } = new URL(request.url ?? '/', 'http://localhost');
-  const file = resolve(pathname);
-  const status = file ? 200 : 404;
-  const served = file ?? resolve('/404');
-  if (!served) {
-    response.writeHead(404).end();
-    return;
-  }
-  readFile(served).then(
-    (body) => {
-      response
-        .writeHead(status, {
-          ...headersFor(pathname),
-          'Content-Type': CONTENT_TYPES[extname(served)] ?? 'application/octet-stream',
-        })
-        .end(body);
-    },
-    () => {
-      response.writeHead(500).end();
-    },
-  );
-});
-await new Promise((done) => {
-  server.listen(0, '127.0.0.1', () => {
-    done(undefined);
-  });
-});
-const address = server.address();
-if (address === null || typeof address === 'string') throw new Error('no server port');
-const origin = `http://127.0.0.1:${String(address.port)}`;
+const { origin, close } = await serveDist();
 
 /**
  * Describes the focused element, as seen by a keyboard user.
@@ -287,7 +240,7 @@ try {
   }
 } finally {
   await browser.close();
-  server.close();
+  await close();
 }
 
 if (notes.length > 0)
