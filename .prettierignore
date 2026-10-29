@@ -1,0 +1,7 @@
+dist/
+.astro/
+node_modules/
+package-lock.json
+# Local agent files, never committed.
+.claude/
+CLAUDE.md
