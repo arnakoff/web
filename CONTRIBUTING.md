@@ -48,7 +48,7 @@ Tant que la variable n'existe pas, le job est ignoré.
 
 Les en-têtes de sécurité (CSP, HSTS, `Referrer-Policy`, `Permissions-Policy`, `X-Content-Type-Options`) sont dans `public/_headers`. `npm run build` y ajoute l'empreinte SHA-256 de chaque script en ligne des pages construites ; `npm test` vérifie que chaque page reçoit ces en-têtes et que Chromium ne signale aucune violation de la CSP, recherche de la documentation comprise.
 
-Aucun traceur : `npm test` échoue si une page envoie une requête hors du site, pose un cookie ou garde dans le navigateur autre chose que le choix du thème et l'état de la barre latérale de la documentation. La seule mesure d'audience est Cloudflare Web Analytics, ajoutée par Cloudflare au déploiement et non présente dans `dist/`.
+Aucun traceur : `npm test` échoue si une page envoie une requête hors du site, pose un cookie ou garde dans le navigateur autre chose que le choix du thème et l'état de la barre latérale de la documentation. La seule mesure d'audience est Cloudflare Web Analytics, ajoutée par Cloudflare au déploiement et non présente dans `dist/`. Après chaque déploiement, le job _Deploy_ refait ces vérifications sur les pages en ligne (`scripts/check-deployed.mjs`), où seules les requêtes vers Web Analytics sont permises.
 
 ## Règles de code
 
