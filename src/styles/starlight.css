@@ -38,4 +38,12 @@
   --sl-color-red-low: var(--color-alert-bg);
   --sl-color-red: var(--color-alert);
   --sl-color-red-high: var(--color-alert);
+
+  /* Asides follow the site callouts: caution is attention, note is info. */
+  --sl-color-orange-low: var(--color-attention-bg);
+  --sl-color-orange: var(--color-attention);
+  --sl-color-orange-high: var(--color-attention);
+  --sl-color-blue-low: var(--color-info-bg);
+  --sl-color-blue: var(--color-info);
+  --sl-color-blue-high: var(--color-info);
 }

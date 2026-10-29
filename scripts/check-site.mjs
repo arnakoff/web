@@ -1,6 +1,6 @@
 // Checks the built site in dist/: expected pages and icons exist, every
-// internal link resolves to a built file, and every page carries its required
-// metadata, share image included.
+// internal link resolves to a built file or, for `#id`, to an element of its
+// page, and every page carries its required metadata, share image included.
 // Run with `npm test` after `npm run build`.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
@@ -129,10 +129,15 @@ for (const file of htmlFiles(DIST)) {
     fail(name, `<meta property="og:image"> is not ${SHARE_IMAGE_URL}`);
   }
 
-  // Internal links and assets.
+  // Internal links, in-page anchors and assets.
+  const ids = new Set(Array.from(html.matchAll(/\sid=["']?([^"'\s>]+)/gi), (match) => match[1]));
   for (const [tag] of html.matchAll(/<(?:a|link|script|img|source)\b[^>]*>/gi)) {
     const target = attribute(tag, 'href') ?? attribute(tag, 'src');
-    if (target === null || target === '' || target.startsWith('#')) continue;
+    if (target === null || target === '' || target === '#') continue;
+    if (target.startsWith('#')) {
+      if (!ids.has(decodeURIComponent(target.slice(1)))) fail(name, `broken anchor ${target}`);
+      continue;
+    }
     const url = new URL(target, pageUrl);
     if (url.origin !== pageUrl.origin) continue;
     if (!resolve(url.pathname)) fail(name, `broken internal link ${target}`);

@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Button from '../components/Button.astro';
 import { DOCS_PATH } from '../lib/site';
 
 const title = 'Arnakoff';
@@ -7,19 +8,9 @@ const description = "Arnakoff, l'API française de signaux sourcés contre les a
 ---
 
 <Base title={title} description={description}>
-  <main>
-    <h1>{title}</h1>
-    <p>Le site est en construction.</p>
-    <p>
-      <a href={DOCS_PATH}>Lire la documentation de l'API</a>
-    </p>
-  </main>
+  <h1>{title}</h1>
+  <p>Le site est en construction.</p>
+  <p>
+    <Button href={DOCS_PATH}>Lire la documentation de l'API</Button>
+  </p>
 </Base>
-
-<style>
-  main {
-    max-width: 45rem;
-    margin-inline: auto;
-    padding: var(--space-8) var(--space-4);
-  }
-</style>

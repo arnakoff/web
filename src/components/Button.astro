@@ -1,0 +1,55 @@
+---
+// A call to action: a link when it has an `href`, a button otherwise.
+// `primary` is filled, `secondary` is outlined; neither uses the alert red.
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = {
+  variant?: 'primary' | 'secondary';
+} & (HTMLAttributes<'a'> | HTMLAttributes<'button'>);
+
+const { variant = 'primary', class: className, ...attrs } = Astro.props;
+const classes = ['button', variant, className];
+---
+
+{'href' in attrs && attrs.href ? (
+  <a class:list={classes} {...(attrs as HTMLAttributes<'a'>)}>
+    <slot />
+  </a>
+) : (
+  <button class:list={classes} type="button" {...(attrs as HTMLAttributes<'button'>)}>
+    <slot />
+  </button>
+)}
+
+<style>
+  .button {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    justify-content: center;
+    min-height: var(--size-target);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-text);
+    border-radius: var(--radius);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .primary {
+    background: var(--color-text);
+    color: var(--color-text-invert);
+  }
+
+  .secondary {
+    border-color: var(--color-border-strong);
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .button:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+</style>

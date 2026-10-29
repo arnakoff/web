@@ -2,8 +2,9 @@
 // Document shell of every showcase page: metadata, tokens, theme.
 import '../styles/tokens.css';
 import '../styles/global.css';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
 import ThemeInit from '../components/ThemeInit.astro';
-import ThemeSelect from '../components/ThemeSelect.astro';
 import { FAVICON_SVG, ICON_LINKS, shareImageMeta } from '../lib/meta';
 
 interface Props {
@@ -13,6 +14,8 @@ interface Props {
 
 const { title, description } = Astro.props;
 const url = new URL(Astro.url.pathname, Astro.site);
+/** Target of the skip link. */
+const MAIN_ID = 'contenu';
 ---
 
 <!doctype html>
@@ -40,18 +43,30 @@ const url = new URL(Astro.url.pathname, Astro.site);
     ))}
   </head>
   <body>
-    <header>
-      <ThemeSelect />
-    </header>
-    <slot />
+    <SiteHeader mainId={MAIN_ID} />
+    <main id={MAIN_ID} tabindex="-1">
+      <slot />
+    </main>
+    <SiteFooter />
   </body>
 </html>
 
 <style>
-  header {
+  body {
     display: flex;
-    justify-content: flex-end;
-    padding: var(--space-3) var(--space-4);
-    border-bottom: 1px solid var(--color-border);
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  main {
+    flex: 1;
+    width: 100%;
+    max-width: var(--width-text);
+    margin-inline: auto;
+    padding: var(--space-8) var(--space-4);
+  }
+
+  main:focus {
+    outline: none;
   }
 </style>

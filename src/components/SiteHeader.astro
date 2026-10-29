@@ -1,0 +1,111 @@
+---
+// Header of the showcase pages: skip link, brand, main navigation, theme.
+// The navigation wraps instead of hiding behind a menu button: it needs no
+// JavaScript and every link stays one tab away, at every width.
+import Logo from './Logo.astro';
+import ThemeSelect from './ThemeSelect.astro';
+import { DOCS_PATH } from '../lib/site';
+
+/** Main navigation, in reading order. A new section adds its page here. */
+const NAV = [{ href: DOCS_PATH, label: 'Documentation' }] as const;
+
+interface Props {
+  /** Id of the page's <main>, target of the skip link. */
+  mainId: string;
+}
+
+const { mainId } = Astro.props;
+const path = Astro.url.pathname;
+/** A link is current on its own page and, for a section, on its subpages. */
+const isCurrent = (href: string) => path === href || (href !== '/' && path.startsWith(href));
+---
+
+<a class="skip-link" href={`#${mainId}`}>
+  Aller au contenu
+</a>
+<header class="site-header">
+  <a class="brand" href="/" aria-current={path === '/' ? 'page' : undefined}>
+    <Logo />
+    <span>Arnakoff</span>
+  </a>
+  <nav aria-label="Navigation principale">
+    <ul>
+      {NAV.map(({ href, label }) => (
+        <li>
+          <a href={href} aria-current={isCurrent(href) ? 'page' : undefined}>
+            {label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+  <ThemeSelect />
+</header>
+
+<style>
+  .skip-link {
+    position: absolute;
+    top: var(--space-2);
+    left: var(--space-2);
+    z-index: 1;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius);
+    background: var(--color-text);
+    color: var(--color-text-invert);
+    font-weight: 600;
+    transform: translateY(-200%);
+  }
+
+  .skip-link:focus {
+    transform: none;
+  }
+
+  .site-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-6);
+    align-items: center;
+    padding: var(--space-3) var(--gutter);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .brand {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    min-height: var(--size-target);
+    font-size: var(--text-lg);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  nav {
+    flex: 1;
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--size-target);
+    text-decoration-color: transparent;
+  }
+
+  nav a:hover,
+  nav a[aria-current='page'] {
+    text-decoration-color: currentColor;
+  }
+
+  nav a[aria-current='page'] {
+    font-weight: 600;
+    text-decoration-thickness: 2px;
+  }
+</style>
