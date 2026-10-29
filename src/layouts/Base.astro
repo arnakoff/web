@@ -5,7 +5,14 @@ import '../styles/global.css';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import ThemeInit from '../components/ThemeInit.astro';
-import { FAVICON_SVG, ICON_LINKS, shareImageMeta } from '../lib/meta';
+import {
+  FAVICON_SVG,
+  ICON_LINKS,
+  OG_LOCALE,
+  SITE_NAME,
+  SITEMAP_PATH,
+  shareImageMeta,
+} from '../lib/meta';
 
 interface Props {
   title: string;
@@ -26,6 +33,7 @@ const MAIN_ID = 'contenu';
     <ThemeInit />
     <meta name="description" content={description} />
     <link rel="canonical" href={url} />
+    <link rel="sitemap" href={SITEMAP_PATH} />
     <title>{title}</title>
     <link rel="icon" href={FAVICON_SVG} type="image/svg+xml" />
     {ICON_LINKS.map((attrs) => (
@@ -34,13 +42,14 @@ const MAIN_ID = 'contenu';
     <meta property="og:title" content={title} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={url} />
-    <meta property="og:locale" content="fr" />
+    <meta property="og:locale" content={OG_LOCALE} />
     <meta property="og:description" content={description} />
-    <meta property="og:site_name" content="Arnakoff" />
+    <meta property="og:site_name" content={SITE_NAME} />
     <meta name="twitter:card" content="summary_large_image" />
     {shareImageMeta(url).map((attrs) => (
       <meta {...attrs} />
     ))}
+    <slot name="head" />
   </head>
   <body>
     <SiteHeader mainId={MAIN_ID} />
