@@ -21,7 +21,7 @@ Règles de rédaction, les mêmes que pour l'API :
 - jamais « arnaque » à propos d'une entité nommée ;
 - chaque fait avec sa source.
 
-Les contenus factuels sont copiés, jamais réécrits : `npm run sync` recopie `docs/sources.md`, `docs/signals.md`, `api/openapi.yaml` et `CHANGELOG.md` d'un clone de l'API (`../arnakoff`, ou le dossier nommé par `ARNAKOFF_API_DIR`) dans `src/content/api/`. Pour corriger une copie, corrige le fichier dans `arnakoff/api`, puis relance `npm run sync`. Un fichier que l'API ne publie pas encore est ignoré.
+Les contenus factuels sont copiés, jamais réécrits : `npm run sync` recopie `docs/sources.md`, `docs/signals.md`, `api/openapi.yaml` et `CHANGELOG.md` d'un clone de l'API (`../api`, ou le dossier nommé par `ARNAKOFF_API_DIR`) dans `src/content/api/`. Pour corriger une copie, corrige le fichier dans `arnakoff/api`, puis relance `npm run sync`. Un fichier que l'API ne publie pas encore est ignoré.
 
 Le workflow `Content sync` le fait chaque jour et ouvre une pull request sur la branche `chore/content-sync` quand une copie change. Une PR ouverte avec `GITHUB_TOKEN` ne déclenche aucun workflow : il utilise donc le jeton d'une GitHub App de l'organisation, à configurer une fois par le propriétaire :
 
