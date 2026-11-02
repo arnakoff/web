@@ -19,14 +19,18 @@ const { facts } = Astro.props;
 </dl>
 
 <style>
+  /* minmax(0, …): a long value inside <code>, which Starlight breaks only
+     where it overflows, wraps instead of widening the track. */
   dl {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-3);
     margin: 0;
   }
 
   dl > div {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-1);
     padding-block-start: var(--space-3);
     border-block-start: 1px solid var(--color-border);
@@ -34,7 +38,7 @@ const { facts } = Astro.props;
 
   @media (width >= 48rem) {
     dl > div {
-      grid-template-columns: 12rem 1fr;
+      grid-template-columns: 12rem minmax(0, 1fr);
       gap: var(--space-4);
     }
   }

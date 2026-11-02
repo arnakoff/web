@@ -1,0 +1,89 @@
+---
+// The errors of the API: the RFC 9457 format, as the `Problem` schema of
+// api/openapi.yaml describes it, and the list of the error pages.
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import FactList from '../../../components/FactList.astro';
+import { inlineHtml } from '../../../lib/markdown';
+import { PROBLEMS } from '../../../lib/openapi';
+import { problemPath } from '../../../lib/problems';
+import { STANDARD_URLS } from '../../../lib/site';
+
+const FIELDS = [
+  { label: 'type', html: "L'adresse de la page qui documente l'erreur." },
+  { label: 'title', html: "Le résumé de l'erreur, en français, toujours le même pour un code." },
+  { label: 'status', html: 'Le statut HTTP de la réponse.' },
+  {
+    label: 'detail',
+    html: "L'explication de cette occurrence, en français. Elle ne cite jamais une donnée personnelle, pas même l'entrée.",
+  },
+  {
+    label: 'instance',
+    html: "L'identifiant de cette occurrence, tiré de l'en-tête `X-Request-ID` de la réponse. Absent de l'erreur d'un élément d'un lot.",
+  },
+  { label: 'code', html: "L'identifiant stable de l'erreur." },
+].map(({ label, html }) => ({ label, html: inlineHtml(html) }));
+
+const headings = [
+  { depth: 2, slug: 'format', text: 'Le format' },
+  { depth: 2, slug: 'gerer', text: 'Gérer une erreur' },
+  { depth: 2, slug: 'liste', text: 'Les erreurs' },
+];
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Erreurs',
+    description:
+      "Les erreurs de l'API Arnakoff au format RFC 9457 : leurs champs, comment les traiter, et une page par code d'erreur.",
+  }}
+  headings={headings}
+>
+  <p>
+    Quand une requête échoue, l'API répond avec un statut HTTP d'erreur et un corps en{' '}
+    <code>application/problem+json</code>, le format de la{' '}
+    <a href={STANDARD_URLS.problemDetails}>RFC 9457</a>.
+  </p>
+
+  <h2 id="format">Le format</h2>
+  <p>Chaque erreur porte ces champs :</p>
+  <FactList facts={FIELDS} />
+
+  <h2 id="gerer">Gérer une erreur</h2>
+  <ul>
+    <li>
+      Décide d'après <code>code</code> : <code>title</code> et <code>detail</code> sont des textes
+      faits pour être lus.
+    </li>
+    <li>
+      La liste des codes est ouverte : un code que tu ne connais pas encore peut apparaître.
+      Traite-le d'après <code>status</code>.
+    </li>
+    <li>
+      Quand tu signales un problème, cite <code>instance</code>.
+    </li>
+  </ul>
+
+  <h2 id="liste">Les erreurs</h2>
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Statut</th>
+        <th scope="col">Code</th>
+        <th scope="col">Titre</th>
+      </tr>
+    </thead>
+    <tbody>
+      {PROBLEMS.map(({ status, code, title }) => (
+        <tr>
+          <td>{status}</td>
+          <td>
+            <a href={problemPath(code)}>
+              <code>{code}</code>
+            </a>
+          </td>
+          <td>{title}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</StarlightPage>

@@ -19,6 +19,12 @@ export const DOCS_PATH = '/docs/';
 export const REFERENCE_BASE = 'docs/reference';
 export const REFERENCE_PATH = `/${REFERENCE_BASE}/`;
 
+/**
+ * Path of the error pages: the `type` of each error the API answers is this
+ * page followed by its `code` (`ARNAKOFF_PROBLEM_BASE_URL` in `arnakoff/api`).
+ */
+export const ERRORS_PATH = '/docs/erreurs/';
+
 /** Absolute URL of the API documentation. */
 export const DOCS_URL = new URL(DOCS_PATH, SITE_URL).href;
 
@@ -45,9 +51,13 @@ export const API_SIGNALS_URL = `${REPO_API_URL}/blob/main/docs/signals.md`;
 export const API_STANDARDS_URL = `${REPO_API_URL}/blob/main/docs/standards.md`;
 export const API_RELEASES_URL = `${REPO_API_URL}/releases`;
 
+/** Issue forms of the API repository, where a bug is reported (SUPPORT.md of arnakoff/.github). */
+export const API_ISSUES_URL = `${REPO_API_URL}/issues/new/choose`;
+
 /** Standards the API follows, at their official source. */
 export const STANDARD_URLS = {
   semver: 'https://semver.org/lang/fr/',
+  problemDetails: 'https://www.rfc-editor.org/rfc/rfc9457',
   deprecation: 'https://www.rfc-editor.org/rfc/rfc9745',
   sunset: 'https://www.rfc-editor.org/rfc/rfc8594',
 } as const;

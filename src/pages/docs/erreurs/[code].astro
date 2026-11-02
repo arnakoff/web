@@ -1,0 +1,97 @@
+---
+// The page of one error of the API, at the URI of its `type`: what the
+// contract says of it and its guide (lib/problems.ts).
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { Code } from '@astrojs/starlight/components';
+import FactList from '../../../components/FactList.astro';
+import { inlineHtml } from '../../../lib/markdown';
+import { PROBLEMS, compactJson } from '../../../lib/openapi';
+import { problemPath, type Problem } from '../../../lib/problems';
+import { ERRORS_PATH } from '../../../lib/site';
+
+export function getStaticPaths() {
+  return PROBLEMS.map((problem, index) => ({
+    params: { code: problem.code },
+    props: { problem, prev: PROBLEMS[index - 1], next: PROBLEMS[index + 1] },
+  }));
+}
+
+interface Props {
+  problem: Problem;
+  prev: Problem | undefined;
+  next: Problem | undefined;
+}
+
+const { problem, prev, next } = Astro.props;
+const { code, title, status, type, details, example, when, fix, link, item } = problem;
+const [, ...otherDetails] = details;
+
+/** A neighbour error, as a pagination link; none at either end. */
+const pageLink = (neighbour: Problem | undefined) =>
+  neighbour ? { link: problemPath(neighbour.code), label: neighbour.title } : false;
+
+const headings = [
+  { depth: 2, slug: 'quand', text: "Quand l'API la renvoie" },
+  { depth: 2, slug: 'que-faire', text: 'Que faire' },
+  { depth: 2, slug: 'exemple', text: 'Exemple de réponse' },
+];
+---
+
+<StarlightPage
+  frontmatter={{
+    title,
+    description: `L'erreur ${code} de l'API Arnakoff, de statut HTTP ${String(status)} : quand elle est renvoyée et comment la corriger.`,
+    prev: pageLink(prev),
+    next: pageLink(next),
+  }}
+  headings={headings}
+>
+  <FactList
+    facts={[
+      { label: 'Code', html: inlineHtml(`\`${code}\``) },
+      { label: 'Statut HTTP', html: String(status) },
+      { label: 'Type', html: inlineHtml(`\`${type}\``) },
+    ]}
+  />
+
+  <h2 id="quand">Quand l'API la renvoie</h2>
+  <ul>
+    {when.map((line) => (
+      <li set:html={inlineHtml(line)} />
+    ))}
+  </ul>
+  {item && (
+    <p>
+      Dans un lot, l'erreur d'un élément est donnée dans son résultat, sans champ{' '}
+      <code>instance</code>, et ne change rien aux autres éléments : la réponse reste en{' '}
+      <code>200</code>.
+    </p>
+  )}
+
+  <h2 id="que-faire">Que faire</h2>
+  <p set:html={inlineHtml(fix)} />
+  {link && (
+    <p>
+      <a href={link.href}>{link.label}</a>
+    </p>
+  )}
+
+  <h2 id="exemple">Exemple de réponse</h2>
+  <Code code={compactJson(example)} lang="json" />
+  {otherDetails.length > 0 && (
+    <>
+      <p>
+        Selon le cas, <code>detail</code> vaut aussi :
+      </p>
+      <ul>
+        {otherDetails.map((detail) => (
+          <li>« {detail} »</li>
+        ))}
+      </ul>
+    </>
+  )}
+
+  <p>
+    <a href={ERRORS_PATH}>Toutes les erreurs de l'API</a>
+  </p>
+</StarlightPage>
