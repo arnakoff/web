@@ -1,0 +1,101 @@
+---
+// The signals a check can give: level, inputs, source, condition and an
+// example sentence of each, read from the copy of arnakoff/api
+// docs/signals.md (lib/signals.ts). The levels are those of the `Level`
+// schema of openapi.yaml.
+import Base from '../layouts/Base.astro';
+import ApiStatus from '../components/ApiStatus.astro';
+import Callout from '../components/Callout.astro';
+import FactList from '../components/FactList.astro';
+import Toc from '../components/Toc.astro';
+import { CALLOUT_LABELS } from '../lib/callout';
+import { inlineHtml } from '../lib/markdown';
+import { SIGNAL_GROUPS } from '../lib/signals';
+import { API_SIGNALS_URL, HOW_IT_WORKS_PATH, REFERENCE_PATH, SOURCES_PATH } from '../lib/site';
+
+const title = 'Signaux : niveaux, conditions et exemples · Arnakoff';
+const description =
+  "Les signaux qu'une vérification Arnakoff peut donner : leur niveau, les entrées concernées, leur source, leur condition et un exemple de phrase.";
+---
+
+<Base title={title} description={description}>
+  <h1>Signaux</h1>
+  <p>
+    Un signal est un fait relevé sur l'entrée que tu vérifies. Chacun porte un code stable, un
+    niveau, une phrase en français, sa source, le lien pour la vérifier et la date du relevé.
+  </p>
+
+  <ApiStatus>Cette page décrit les signaux qu'elle donnera.</ApiStatus>
+
+  <h2>Les niveaux</h2>
+  <ul>
+    <li>
+      <strong>{CALLOUT_LABELS.info}</strong> : un fait neutre.
+    </li>
+    <li>
+      <strong>{CALLOUT_LABELS.attention}</strong> : un indice à vérifier avant d'agir.
+    </li>
+    <li>
+      <strong>{CALLOUT_LABELS.alerte}</strong> : un fait publié par une autorité, comme une
+      inscription sur une liste noire.
+    </li>
+  </ul>
+  <p>
+    Aucun signal ne veut pas dire que tout va bien : <a href={HOW_IT_WORKS_PATH}>les limites</a>{' '}
+    l'expliquent.
+  </p>
+
+  <h2>Les signaux</h2>
+  <Toc items={SIGNAL_GROUPS.map(({ id, title }) => ({ id, label: title }))} />
+
+  {SIGNAL_GROUPS.map(({ id, title, signals }) => (
+    <section aria-labelledby={id}>
+      <h3 id={id}>{title}</h3>
+      {signals.map(({ code, level, inputs, sources, condition, examples }) => (
+        <article aria-labelledby={code}>
+          <h4 id={code}>
+            <code>{code}</code>
+          </h4>
+          <FactList
+            facts={[
+              { label: 'Niveau', html: inlineHtml(CALLOUT_LABELS[level]) },
+              { label: 'Entrées', html: inlineHtml(inputs.join(', ')) },
+              {
+                label: sources.length > 1 ? 'Sources' : 'Source',
+                html: inlineHtml(sources.join(', ')),
+              },
+              { label: 'Condition', html: inlineHtml(condition) },
+            ]}
+          />
+          {examples.map(({ message, advice }) => (
+            <Callout level={level} title="exemple">
+              <p>« {message} »</p>
+              {advice && <p>Conseil : {advice}</p>}
+            </Callout>
+          ))}
+        </article>
+      ))}
+    </section>
+  ))}
+
+  <p>
+    Chaque source est décrite sur la page <a href={SOURCES_PATH}>Sources</a>. Les conditions en
+    détail sont dans <a href={API_SIGNALS_URL}>la liste des signaux</a> de l'API.
+  </p>
+  <p>
+    <a href={`${REFERENCE_PATH}operations/listsignals/`}>
+      <code>GET /v1/signals</code>
+    </a>{' '}
+    sert aussi ce catalogue.
+  </p>
+</Base>
+
+<style>
+  section {
+    margin-block-start: var(--space-8);
+  }
+
+  article {
+    margin-block-start: var(--space-6);
+  }
+</style>

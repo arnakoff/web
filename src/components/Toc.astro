@@ -1,0 +1,32 @@
+---
+// « Sur cette page » list of a long page: one link per section, in columns.
+interface Props {
+  /** Sections, in page order: fragment identifier and visible name. */
+  items: readonly { id: string; label: string }[];
+}
+
+const { items } = Astro.props;
+---
+
+<nav aria-labelledby="sommaire">
+  <p id="sommaire" class="title">
+    Sur cette page
+  </p>
+  <ul>
+    {items.map(({ id, label }) => (
+      <li>
+        <a href={`#${id}`}>{label}</a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  .title {
+    font-weight: bold;
+  }
+
+  ul {
+    columns: 16rem;
+  }
+</style>

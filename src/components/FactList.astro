@@ -1,0 +1,50 @@
+---
+// Labelled facts read from a copy of arnakoff/api: label and value side by
+// side from 48rem, stacked below.
+interface Props {
+  /** Values are safe HTML, from `inlineHtml` (lib/markdown.ts). */
+  facts: readonly { label: string; html: string }[];
+}
+
+const { facts } = Astro.props;
+---
+
+<dl>
+  {facts.map(({ label, html }) => (
+    <div>
+      <dt>{label}</dt>
+      <dd set:html={html} />
+    </div>
+  ))}
+</dl>
+
+<style>
+  dl {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+
+  dl > div {
+    display: grid;
+    gap: var(--space-1);
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  @media (width >= 48rem) {
+    dl > div {
+      grid-template-columns: 12rem 1fr;
+      gap: var(--space-4);
+    }
+  }
+
+  dt {
+    font-weight: bold;
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+</style>
