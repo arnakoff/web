@@ -1,0 +1,129 @@
+---
+// The data sources of Arnakoff: publisher, licence, freshness and use of each
+// one, read from the copy of arnakoff/api docs/sources.md (lib/sources.ts).
+import Base from '../layouts/Base.astro';
+import ApiStatus from '../components/ApiStatus.astro';
+import { REFUSED_SOURCES, SOURCES } from '../lib/sources';
+import { API_SOURCES_URL } from '../lib/site';
+
+const title = 'Sources : éditeurs, licences et fraîcheur · Arnakoff';
+const description =
+  "Les sources publiques qu'Arnakoff consulte : qui les publie, sous quelle licence, à quel rythme elles changent et ce que l'API en tire.";
+---
+
+<Base title={title} description={description}>
+  <h1>Sources</h1>
+  <p>
+    Arnakoff ne répond qu'à partir de sources publiques. Pour chacune : qui la publie, sous quelle
+    licence, à quel rythme elle change et ce que l'API en tire. Une source absente de cette page
+    n'est pas utilisée.
+  </p>
+
+  <ApiStatus>Cette page décrit les sources qu'elle consultera.</ApiStatus>
+
+  <h2>Fraîcheur des données</h2>
+  <ul>
+    <li>
+      Les listes de l'AMF sont téléchargées toutes les 6 heures, la numérotation de l'ARCEP toutes
+      les 24 heures.
+    </li>
+    <li>
+      SIRENE, le BODACC et les registres RDAP sont interrogés à la demande. Les réponses du BODACC
+      et des registres RDAP sont gardées 24 heures.
+    </li>
+    <li>
+      Un fichier invalide, ou qui perd plus de 20 % de ses entrées, est rejeté : l'API garde le
+      précédent.
+    </li>
+  </ul>
+
+  <h2>Les sources</h2>
+  <nav aria-labelledby="sommaire">
+    <p id="sommaire" class="toc-title">
+      Sur cette page
+    </p>
+    <ul class="toc">
+      {SOURCES.map(({ id, name }) => (
+        <li>
+          <a href={`#${id}`}>{name}</a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+
+  {SOURCES.map(({ id, name, intro, facts }) => (
+    <section aria-labelledby={id}>
+      <h3 id={id}>{name}</h3>
+      {intro && <p set:html={intro} />}
+      <dl>
+        {facts.map(({ label, html }) => (
+          <div>
+            <dt>{label}</dt>
+            <dd set:html={html} />
+          </div>
+        ))}
+      </dl>
+    </section>
+  ))}
+
+  {REFUSED_SOURCES.length > 0 && (
+    <>
+      <h2>Sources refusées</h2>
+      <ul>
+        {REFUSED_SOURCES.map(({ label, html }) => (
+          <li>
+            <strong>{label}</strong> : <Fragment set:html={html} />
+          </li>
+        ))}
+      </ul>
+    </>
+  )}
+
+  <p>
+    Les formats, les champs lus et les relevés de chaque source sont détaillés dans{' '}
+    <a href={API_SOURCES_URL}>l'inventaire des sources</a> de l'API.
+  </p>
+</Base>
+
+<style>
+  .toc-title {
+    font-weight: bold;
+  }
+
+  .toc {
+    columns: 16rem;
+  }
+
+  section {
+    margin-block-start: var(--space-8);
+  }
+
+  dl {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+
+  dl > div {
+    display: grid;
+    gap: var(--space-1);
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  @media (width >= 48rem) {
+    dl > div {
+      grid-template-columns: 12rem 1fr;
+      gap: var(--space-4);
+    }
+  }
+
+  dt {
+    font-weight: bold;
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+</style>
