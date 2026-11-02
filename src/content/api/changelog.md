@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.32.0](https://github.com/arnakoff/api/compare/v0.31.0...v0.32.0) (2026-11-02)
+
+
+### Features
+
+* **signal:** add bnp paribas to the official domains ([#179](https://github.com/arnakoff/api/issues/179)) ([01039c2](https://github.com/arnakoff/api/commit/01039c2ae356441ceda28de3afc78ac413e019cf)), closes [#166](https://github.com/arnakoff/api/issues/166)
+
+## [0.31.0](https://github.com/arnakoff/api/compare/v0.30.0...v0.31.0) (2026-11-02)
+
+
+### Features
+
+* **httpapi:** serve the api with bounded timeouts, probes and safe defaults ([#177](https://github.com/arnakoff/api/issues/177)) ([58dbf52](https://github.com/arnakoff/api/commit/58dbf52cf23a82080aa000ecc59717da4f12fd07)), closes [#50](https://github.com/arnakoff/api/issues/50)
+
+## [0.30.0](https://github.com/arnakoff/api/compare/v0.29.1...v0.30.0) (2026-11-02)
+
+
+### Features
+
+* **httpapi:** add the openapi v1 contract and a contract test harness ([#173](https://github.com/arnakoff/api/issues/173)) ([c9c89d9](https://github.com/arnakoff/api/commit/c9c89d9f07d5083babfdd1be50ab0145406667d2)), closes [#49](https://github.com/arnakoff/api/issues/49)
+
+## [0.29.1](https://github.com/arnakoff/api/compare/v0.29.0...v0.29.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* **signal:** keep white-list pages on shared platforms from covering them ([#170](https://github.com/arnakoff/api/issues/170)) ([55570cb](https://github.com/arnakoff/api/commit/55570cbf61797e6ae29903b4268c824193125fe0)), closes [#156](https://github.com/arnakoff/api/issues/156)
+
+## [0.29.0](https://github.com/arnakoff/api/compare/v0.28.0...v0.29.0) (2026-11-02)
+
+
+### Features
+
+* **signal:** flag domains that imitate official sites ([#164](https://github.com/arnakoff/api/issues/164)) ([e5477c8](https://github.com/arnakoff/api/commit/e5477c8c64b90fe1b0d49ecfe3b22f12f38af619)), closes [#47](https://github.com/arnakoff/api/issues/47)
+
+## [0.28.0](https://github.com/arnakoff/api/compare/v0.27.0...v0.28.0) (2026-11-02)
+
+
+### Features
+
+* **signal:** flag closed companies and bodacc procedures ([#161](https://github.com/arnakoff/api/issues/161)) ([6596aeb](https://github.com/arnakoff/api/commit/6596aeb4dc4bdd1bd2da63d6c6f3c4c1f2ad5fe9)), closes [#44](https://github.com/arnakoff/api/issues/44)
+* **signal:** flag unassigned phone numbers and name the range holder ([#163](https://github.com/arnakoff/api/issues/163)) ([fbb6595](https://github.com/arnakoff/api/commit/fbb6595d1380d6ab30c3bb932d19725172171621)), closes [#46](https://github.com/arnakoff/api/issues/46)
+* **signal:** state the country holding the account of an iban ([#160](https://github.com/arnakoff/api/issues/160)) ([04f51b9](https://github.com/arnakoff/api/commit/04f51b949c67edfd1c170cd79e6a38a07589934f)), closes [#45](https://github.com/arnakoff/api/issues/45)
+
 ## [0.27.0](https://github.com/arnakoff/api/compare/v0.26.0...v0.27.0) (2026-10-30)
 
 
