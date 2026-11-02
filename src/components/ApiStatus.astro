@@ -1,0 +1,13 @@
+---
+// Says the API is not in service yet (arnakoff/api README, « Statut ») and
+// links the roadmap. The slot tells what the page describes meanwhile.
+import Callout from './Callout.astro';
+import { ROADMAP_URL } from '../lib/site';
+---
+
+<Callout level="info" title="en construction">
+  <p>
+    L'API n'est pas encore en service. <slot /> Tu peux suivre l'avancement dans la{' '}
+    <a href={ROADMAP_URL}>feuille de route</a>.
+  </p>
+</Callout>
