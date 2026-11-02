@@ -6,6 +6,9 @@ export const SITE_URL = 'https://arnakoff.com';
 /** Path of the page that explains how Arnakoff works and its limits. */
 export const HOW_IT_WORKS_PATH = '/comment-ca-marche/';
 
+/** Path of the page that lists the data sources, their licences and freshness. */
+export const SOURCES_PATH = '/sources/';
+
 /** Path where Starlight serves the API documentation. */
 export const DOCS_PATH = '/docs/';
 

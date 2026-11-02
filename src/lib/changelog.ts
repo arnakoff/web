@@ -3,7 +3,7 @@
 // versions page can render. Only the release-please format is understood:
 // `## <version or [version](compare URL)> (YYYY-MM-DD)`, `### <section>` and
 // `* <entry>` lines.
-import { REPO_API_URL } from './site';
+import { inlineHtml } from './markdown';
 
 export interface ChangelogSection {
   /** French title, or the English one when release-please adds a new section. */
@@ -39,28 +39,6 @@ const SECTION_TITLES: Record<string, string> = {
 
 const RELEASE = /^## (?:\[([^\]]+)\]\([^)]*\)|(\S+)) \((\d{4}-\d{2}-\d{2})\)\s*$/;
 
-/** @param text Markdown text, escaped before any tag is added. */
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-/**
- * Turns one entry into HTML. The text is escaped first; then only bold, code
- * and links into the API repository become tags, so the copy cannot inject
- * markup or send the reader to another site.
- */
-function entryHtml(markdown: string): string {
-  const api = `${REPO_API_URL}/`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return escapeHtml(markdown)
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(new RegExp(`\\[([^\\]]+)\\]\\((${api}[^)\\s]*)\\)`, 'g'), '<a href="$2">$1</a>');
-}
-
 /** Parses a release-please changelog, newest release first. */
 export function parseChangelog(markdown: string): Release[] {
   const releases: Release[] = [];
@@ -85,7 +63,7 @@ export function parseChangelog(markdown: string): Release[] {
       section = { title: french ?? english, translated: french !== undefined, entries: [] };
       current.sections.push(section);
     } else if (/^[*-] /.test(line) && section) {
-      section.entries.push(entryHtml(line.slice(2).trim()));
+      section.entries.push(inlineHtml(line.slice(2).trim()));
     }
   }
   return releases;

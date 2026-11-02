@@ -6,7 +6,7 @@ import Base from '../layouts/Base.astro';
 import ApiStatus from '../components/ApiStatus.astro';
 import Callout from '../components/Callout.astro';
 import { CALLOUT_LABELS } from '../lib/callout';
-import { API_SIGNALS_URL, API_SOURCES_URL, DOCS_PATH, HELP_URLS } from '../lib/site';
+import { API_SIGNALS_URL, DOCS_PATH, HELP_URLS, SOURCES_PATH } from '../lib/site';
 
 /** Official services for a scam victim: who runs each one and what it takes. */
 const HELP = [
@@ -81,7 +81,7 @@ const description =
   </ul>
   <p>
     La liste complète est publique : les <a href={API_SIGNALS_URL}>signaux</a> et les{' '}
-    <a href={API_SOURCES_URL}>sources avec leurs licences</a>.
+    <a href={SOURCES_PATH}>sources avec leurs licences</a>.
   </p>
 
   <h2>Les limites</h2>
@@ -157,7 +157,7 @@ const description =
   <h3>Comment une source est-elle choisie ?</h3>
   <p>
     Elle est publique et sa licence autorise la réutilisation commerciale. Une source absente de la{' '}
-    <a href={API_SOURCES_URL}>liste des sources</a> n'est pas utilisée.
+    <a href={SOURCES_PATH}>liste des sources</a> n'est pas utilisée.
   </p>
 
   <h3>Comment utiliser l'API ?</h3>

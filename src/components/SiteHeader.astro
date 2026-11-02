@@ -4,11 +4,12 @@
 // JavaScript and every link stays one tab away, at every width.
 import Logo from './Logo.astro';
 import ThemeSelect from './ThemeSelect.astro';
-import { DOCS_PATH, HOW_IT_WORKS_PATH } from '../lib/site';
+import { DOCS_PATH, HOW_IT_WORKS_PATH, SOURCES_PATH } from '../lib/site';
 
 /** Main navigation, in reading order. A new section adds its page here. */
 const NAV = [
   { href: HOW_IT_WORKS_PATH, label: 'Comment ça marche' },
+  { href: SOURCES_PATH, label: 'Sources' },
   { href: DOCS_PATH, label: 'Documentation' },
 ] as const;
 
