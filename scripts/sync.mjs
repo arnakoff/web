@@ -1,14 +1,14 @@
 // Copies the factual content of the API repository into src/content/api/:
 // sources, signals, the OpenAPI contract and the release notes. These copies
 // are never edited by hand; change the file in arnakoff/api, then run
-// `npm run sync`. The API clone is ../arnakoff unless ARNAKOFF_API_DIR names
+// `npm run sync`. The API clone is ../api unless ARNAKOFF_API_DIR names
 // another directory (the daily sync workflow checks it out elsewhere).
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const API = resolve(ROOT, process.env.ARNAKOFF_API_DIR ?? '../arnakoff');
+const API = resolve(ROOT, process.env.ARNAKOFF_API_DIR ?? '../api');
 const OUT = join(ROOT, 'src/content/api');
 
 /**
