@@ -3,9 +3,10 @@
 // a scam. Every claim comes from arnakoff/api: README, docs/signals.md and
 // docs/sources.md.
 import Base from '../layouts/Base.astro';
+import ApiStatus from '../components/ApiStatus.astro';
 import Callout from '../components/Callout.astro';
 import { CALLOUT_LABELS } from '../lib/callout';
-import { API_SIGNALS_URL, API_SOURCES_URL, DOCS_PATH, HELP_URLS, ROADMAP_URL } from '../lib/site';
+import { API_SIGNALS_URL, API_SOURCES_URL, DOCS_PATH, HELP_URLS } from '../lib/site';
 
 /** Official services for a scam victim: who runs each one and what it takes. */
 const HELP = [
@@ -44,12 +45,7 @@ const description =
 <Base title={title} description={description}>
   <h1>Comment ça marche</h1>
 
-  <Callout level="info" title="en construction">
-    <p>
-      L'API n'est pas encore en service. Cette page décrit ce qu'elle fera. Tu peux suivre
-      l'avancement dans la <a href={ROADMAP_URL}>feuille de route</a>.
-    </p>
-  </Callout>
+  <ApiStatus>Cette page décrit ce qu'elle fera.</ApiStatus>
 
   <h2>En quelques étapes</h2>
   <ol>

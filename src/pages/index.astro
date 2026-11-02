@@ -1,8 +1,48 @@
 ---
+// Home page: what Arnakoff does, a response quoted from the OpenAPI contract,
+// its principles and how to start. Every claim comes from arnakoff/api: README,
+// api/openapi.yaml and ADR 0001 (free with a quota).
 import Base from '../layouts/Base.astro';
+import ApiStatus from '../components/ApiStatus.astro';
 import Button from '../components/Button.astro';
 import { SITE_DESCRIPTION, SITE_NAME, jsonLdScript, organizationJsonLd } from '../lib/meta';
-import { DOCS_PATH, SITE_URL } from '../lib/site';
+import { compactJson, contractExample } from '../lib/openapi';
+import { DOCS_PATH, HOW_IT_WORKS_PATH, REFERENCE_PATH, SITE_URL } from '../lib/site';
+
+/** The contract's example of a domain on the AMF blacklist, and its request. */
+const example = contractExample('ReportBlacklisted');
+const response = compactJson(example.value);
+const { input } = example.value;
+if (typeof input !== 'string') throw new Error('ReportBlacklisted has no input.');
+const request = `GET /v1/check?q=${input}`;
+
+/** The principles of the arnakoff/api README, in its order. */
+const PRINCIPLES = [
+  {
+    name: 'Jamais « sûr ».',
+    text: "Sans signal, la réponse est « Aucun signal connu dans nos sources » : l'absence d'une liste noire ne prouve rien.",
+  },
+  {
+    name: 'Des faits, pas des accusations.',
+    text: "Chaque signal cite sa source. Aucun message ne qualifie d'arnaque une entité nommée.",
+  },
+  {
+    name: "Des licences d'abord.",
+    text: "Une source n'est utilisée que si sa licence autorise la réutilisation commerciale.",
+  },
+  {
+    name: 'Les données personnelles protégées.',
+    text: 'Les e-mails, numéros et IBAN ne sont jamais journalisés en clair ni transmis à un tiers.',
+  },
+  {
+    name: "Aucune adresse fournie n'est appelée.",
+    text: "L'API ne visite pas le site que tu vérifies. Les registres sont interrogés par identifiant, à travers une liste d'hôtes autorisés.",
+  },
+  {
+    name: 'Une synchronisation prudente.',
+    text: 'Un fichier de source invalide, ou qui perd plus de 20 % de ses entrées, est rejeté. Le précédent reste en service.',
+  },
+] as const;
 
 const title = SITE_NAME;
 const description = SITE_DESCRIPTION;
@@ -15,9 +55,98 @@ const description = SITE_DESCRIPTION;
     is:inline
     set:html={jsonLdScript(organizationJsonLd(SITE_URL))}
   />
-  <h1>{title}</h1>
-  <p>Le site est en construction.</p>
-  <p>
-    <Button href={DOCS_PATH}>Lire la documentation de l'API</Button>
+  <h1>Des signaux sourcés pour repérer les arnaques</h1>
+  <p class="lead">
+    Pour un site, un e-mail, un numéro de téléphone, un IBAN ou un SIREN, l'API Arnakoff renvoie des
+    signaux sourcés, expliqués en français. Tu lis les faits et tu décides.
   </p>
+  <p class="actions">
+    <Button href={DOCS_PATH}>Lire la documentation</Button>
+    <Button href={HOW_IT_WORKS_PATH} variant="secondary">
+      Comment ça marche
+    </Button>
+  </p>
+
+  <ApiStatus>Ce site décrit ce qu'elle fera.</ApiStatus>
+
+  <h2>Une réponse de l'API</h2>
+  <p>
+    L'API confronte l'entrée à des sources publiques : les listes noires de l'AMF et de l'ACPR, le
+    répertoire SIRENE, le BODACC, l'âge du domaine, la numérotation de l'ARCEP. Voici sa réponse
+    pour un domaine inscrit sur la liste noire de l'AMF, tirée de son contrat OpenAPI.
+  </p>
+  <figure>
+    <figcaption>
+      Requête <code>{request}</code>, réponse <code>200</code> :
+    </figcaption>
+    <pre tabindex="0"><code>{response}</code></pre>
+  </figure>
+  <p>
+    Chaque signal porte un niveau, une phrase factuelle, sa source, le lien pour la vérifier et la
+    date du relevé. La liste <code>sources</code> dit quelles sources ont été consultées (
+    <code>ok</code>), lesquelles ne couvrent pas ce type d'entrée (<code>non_applicable</code>) et
+    lesquelles n'ont pas répondu (<code>indisponible</code>) : pour ces dernières, l'absence de
+    signal ne prouve rien.
+  </p>
+
+  <h2>Les principes</h2>
+  <ul class="principles">
+    {PRINCIPLES.map(({ name, text }) => (
+      <li>
+        <strong>{name}</strong> {text}
+      </li>
+    ))}
+  </ul>
+  <p>
+    Les limites et les questions fréquentes sont sur la page{' '}
+    <a href={HOW_IT_WORKS_PATH}>Comment ça marche</a>.
+  </p>
+
+  <h2>Commencer</h2>
+  <ul>
+    <li>
+      <strong>La documentation.</strong> La <a href={REFERENCE_PATH}>référence de l'API</a> décrit
+      chaque route, ses paramètres et ses réponses.
+    </li>
+    <li>
+      <strong>La clé gratuite.</strong> L'API sera gratuite, avec un quota. Tu pourras demander ta
+      clé à son ouverture.
+    </li>
+  </ul>
 </Base>
+
+<style>
+  .lead {
+    color: var(--color-text-muted);
+    font-size: var(--text-lg);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  figure {
+    margin: var(--space-4) 0;
+  }
+
+  figcaption {
+    margin-bottom: var(--space-2);
+  }
+
+  pre {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-bg-subtle);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+  }
+
+  .principles li + li {
+    margin-top: var(--space-2);
+  }
+</style>
