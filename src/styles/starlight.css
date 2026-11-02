@@ -47,3 +47,12 @@
   --sl-color-blue: var(--color-info);
   --sl-color-blue-high: var(--color-info);
 }
+
+/*
+ * starlight-openapi paints its examples on gray-5, a background shade in
+ * Starlight's scale but the border colour here: syntax colours then miss AA.
+ * Give them the background of every other code block instead.
+ */
+.sl-openapi-example div.expressive-code figure.frame pre {
+  background-color: var(--ec-frm-edBg);
+}

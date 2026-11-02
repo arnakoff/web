@@ -9,6 +9,10 @@ export const HOW_IT_WORKS_PATH = '/comment-ca-marche/';
 /** Path where Starlight serves the API documentation. */
 export const DOCS_PATH = '/docs/';
 
+/** Route base and path of the API reference generated from the OpenAPI contract. */
+export const REFERENCE_BASE = 'docs/reference';
+export const REFERENCE_PATH = `/${REFERENCE_BASE}/`;
+
 /** Absolute URL of the API documentation. */
 export const DOCS_URL = new URL(DOCS_PATH, SITE_URL).href;
 
