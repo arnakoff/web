@@ -27,3 +27,13 @@ export function inlineHtml(markdown: string): string {
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(API_LINK, '<a href="$2">$1</a>');
 }
+
+/** @param name Section heading, made into an ASCII fragment identifier. */
+export function slug(name: string): string {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}

@@ -3,6 +3,8 @@
 // one, read from the copy of arnakoff/api docs/sources.md (lib/sources.ts).
 import Base from '../layouts/Base.astro';
 import ApiStatus from '../components/ApiStatus.astro';
+import FactList from '../components/FactList.astro';
+import Toc from '../components/Toc.astro';
 import { REFUSED_SOURCES, SOURCES } from '../lib/sources';
 import { API_SOURCES_URL } from '../lib/site';
 
@@ -38,31 +40,13 @@ const description =
   </ul>
 
   <h2>Les sources</h2>
-  <nav aria-labelledby="sommaire">
-    <p id="sommaire" class="toc-title">
-      Sur cette page
-    </p>
-    <ul class="toc">
-      {SOURCES.map(({ id, name }) => (
-        <li>
-          <a href={`#${id}`}>{name}</a>
-        </li>
-      ))}
-    </ul>
-  </nav>
+  <Toc items={SOURCES.map(({ id, name }) => ({ id, label: name }))} />
 
   {SOURCES.map(({ id, name, intro, facts }) => (
     <section aria-labelledby={id}>
       <h3 id={id}>{name}</h3>
       {intro && <p set:html={intro} />}
-      <dl>
-        {facts.map(({ label, html }) => (
-          <div>
-            <dt>{label}</dt>
-            <dd set:html={html} />
-          </div>
-        ))}
-      </dl>
+      <FactList facts={facts} />
     </section>
   ))}
 
@@ -86,44 +70,7 @@ const description =
 </Base>
 
 <style>
-  .toc-title {
-    font-weight: bold;
-  }
-
-  .toc {
-    columns: 16rem;
-  }
-
   section {
     margin-block-start: var(--space-8);
-  }
-
-  dl {
-    display: grid;
-    gap: var(--space-3);
-    margin: 0;
-  }
-
-  dl > div {
-    display: grid;
-    gap: var(--space-1);
-    padding-block-start: var(--space-3);
-    border-block-start: 1px solid var(--color-border);
-  }
-
-  @media (width >= 48rem) {
-    dl > div {
-      grid-template-columns: 12rem 1fr;
-      gap: var(--space-4);
-    }
-  }
-
-  dt {
-    font-weight: bold;
-  }
-
-  dd {
-    margin: 0;
-    overflow-wrap: anywhere;
   }
 </style>

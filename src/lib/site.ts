@@ -9,6 +9,9 @@ export const HOW_IT_WORKS_PATH = '/comment-ca-marche/';
 /** Path of the page that lists the data sources, their licences and freshness. */
 export const SOURCES_PATH = '/sources/';
 
+/** Path of the page that lists the signals a check can give, with examples. */
+export const SIGNALS_PATH = '/signaux/';
+
 /** Path where Starlight serves the API documentation. */
 export const DOCS_PATH = '/docs/';
 

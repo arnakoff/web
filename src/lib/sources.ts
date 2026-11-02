@@ -3,7 +3,7 @@
 // its `- **<label>** : <text>` lines are its facts. Only the facts a reader
 // needs are kept: technical ones (access, format, fields) stay in the API
 // repository, linked from the page.
-import { inlineHtml } from './markdown';
+import { inlineHtml, slug } from './markdown';
 import COPY from '../content/api/sources.md?raw';
 
 export interface SourceFact {
@@ -41,16 +41,6 @@ const REFUSED = 'Refusées';
 
 /** `- **A** : x. **B** : y.` holds two facts: a label starts at the line or after a sentence. */
 const FACT = /(?:^|(?<=\. ))\*\*([^*]+)\*\* : /g;
-
-/** @param name Section heading, made into an ASCII fragment identifier. */
-function slug(name: string): string {
-  return name
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
 
 /** @param line A top-level list item, without its `- `. */
 function parseFacts(line: string): { label: string; markdown: string }[] {
