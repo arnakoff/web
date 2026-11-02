@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.38.0](https://github.com/arnakoff/api/compare/v0.37.0...v0.38.0) (2026-11-02)
+
+
+### Features
+
+* **httpapi:** serve get /v1/signals from the signal catalog ([#193](https://github.com/arnakoff/api/issues/193)) ([210225e](https://github.com/arnakoff/api/commit/210225e7531a4096802916a02a3814f1bf7650a4)), closes [#55](https://github.com/arnakoff/api/issues/55)
+
+## [0.37.0](https://github.com/arnakoff/api/compare/v0.36.0...v0.37.0) (2026-11-02)
+
+
+### Features
+
+* **httpapi:** serve get /v1/sources with the state of each source ([#190](https://github.com/arnakoff/api/issues/190)) ([3395b9b](https://github.com/arnakoff/api/commit/3395b9b664b84be16ad9e938c18b690f8ff904d5)), closes [#54](https://github.com/arnakoff/api/issues/54)
+
+## [0.36.0](https://github.com/arnakoff/api/compare/v0.35.0...v0.36.0) (2026-11-02)
+
+
+### Features
+
+* **httpapi:** serve post /v1/check/batch with a result per item ([#188](https://github.com/arnakoff/api/issues/188)) ([f32f594](https://github.com/arnakoff/api/commit/f32f594ab26f33734a20bfd946c2bd418a8a2f99)), closes [#53](https://github.com/arnakoff/api/issues/53)
+
+## [0.35.0](https://github.com/arnakoff/api/compare/v0.34.0...v0.35.0) (2026-11-02)
+
+
+### Features
+
+* **httpapi:** serve get /v1/check with the report of the input ([#185](https://github.com/arnakoff/api/issues/185)) ([76c7996](https://github.com/arnakoff/api/commit/76c7996ebf77b817dbfc4988161cf0a4a29e8fc6)), closes [#52](https://github.com/arnakoff/api/issues/52)
+
+## [0.34.0](https://github.com/arnakoff/api/compare/v0.33.0...v0.34.0) (2026-11-02)
+
+
+### Features
+
+* **httpapi:** answer every error as an rfc 9457 problem documented on the site ([#183](https://github.com/arnakoff/api/issues/183)) ([7b49288](https://github.com/arnakoff/api/commit/7b4928860418511f52ba602cd3170ade7925bca4)), closes [#51](https://github.com/arnakoff/api/issues/51)
+
 ## [0.33.0](https://github.com/arnakoff/api/compare/v0.32.0...v0.33.0) (2026-11-02)
 
 
