@@ -1,0 +1,243 @@
+---
+# Every claim comes from arnakoff/api: api/openapi.yaml (GET /v1/check, the
+# apiKey scheme, Report, Signal, SourceStatus, Problem), cmd/api/doc.go and
+# README.md (not in service yet). The public host is not confirmed yet
+# (src/lib/site.ts), so the examples read it from ARNAKOFF_API_URL. Every
+# example and output below was run against a local build of arnakoff/api
+# main (0.39.0) on 02/11/2026.
+title: Démarrage rapide
+description: Ta première vérification avec l'API Arnakoff, en curl, JavaScript, Python et Go, avec la réponse réelle de l'API et ses erreurs.
+---
+
+import Callout from '../../../components/Callout.astro';
+import { REFERENCE_PATH, SIGNALS_PATH } from '../../../lib/site';
+
+<Callout level="attention" title="l’API n’est pas encore en service">
+  <p>
+    Son adresse publique et la façon d'obtenir une clé seront données ici à l'ouverture. Les
+    exemples de cette page ont été exécutés le 02/11/2026 contre une instance locale de l'API.
+  </p>
+</Callout>
+
+## Avant de commencer
+
+Il te faut deux choses :
+
+- l'adresse de l'API, dans la variable `ARNAKOFF_API_URL` ;
+- une clé API, dans la variable `ARNAKOFF_API_KEY`.
+
+Une clé commence par `ark_live_` (production) ou `ark_test_` (préproduction). Elle n'est affichée qu'une fois, à sa création : garde-la hors de ton code et de ton dépôt.
+
+```sh
+export ARNAKOFF_API_URL="<adresse de l'API>"
+export ARNAKOFF_API_KEY="<ta clé>"
+```
+
+Chaque exemple vérifie le domaine `armen.ltd` avec `GET /v1/check`. Le paramètre `q` prend l'entrée telle qu'elle a été collée : un domaine, une URL, une adresse e-mail, un numéro de téléphone, un IBAN, un SIREN ou un SIRET. L'API en détecte le type. Le paramètre `type`, facultatif, l'impose.
+
+## curl
+
+```sh
+curl -s --get "$ARNAKOFF_API_URL/v1/check" \
+  --data-urlencode "q=armen.ltd" \
+  -H "Authorization: Bearer $ARNAKOFF_API_KEY"
+```
+
+Réponse, mise en forme :
+
+```json
+{
+  "input": "armen.ltd",
+  "type": "domain",
+  "checked_at": "2026-11-02T14:08:55Z",
+  "summary": null,
+  "signals": [
+    {
+      "code": "amf_blacklist",
+      "level": "alerte",
+      "message": "Figure sur la liste noire de l'AMF (catégorie Usurpation) depuis le 08/10/2026.",
+      "source": "AMF",
+      "source_url": "https://www.amf-france.org/fr/espace-epargnants/proteger-son-epargne/listes-noires-et-mises-en-garde",
+      "observed_at": "2026-11-02T14:06:51Z"
+    }
+  ],
+  "sources": [
+    { "source": "AMF", "status": "ok" },
+    { "source": "AMF PSAN", "status": "ok" },
+    { "source": "AMF biens divers", "status": "ok" },
+    { "source": "ARCEP", "status": "non_applicable" },
+    { "source": "RDAP", "status": "ok" },
+    { "source": "SIRENE", "status": "non_applicable" },
+    { "source": "BODACC", "status": "non_applicable" }
+  ]
+}
+```
+
+## Lire la réponse
+
+- `input` : l'entrée normalisée, par exemple le domaine extrait d'une URL.
+- `signals` : les faits trouvés, du plus grave au moins grave. Chacun a un `code` stable, un `level` (`info`, `attention` ou `alerte`), un `message` en français, sa `source`, l'adresse où le vérifier (`source_url`) et la date du relevé (`observed_at`).
+- `summary` : « Aucun signal connu dans nos sources » quand `signals` est vide, `null` sinon. Ce n'est jamais une garantie.
+- `sources` : l'état de chaque source pour cette vérification. `ok` : consultée. `indisponible` : pas consultée, et l'absence de signal de cette source ne prouve rien. `non_applicable` : elle ne couvre pas ce type d'entrée.
+
+Affiche le `message` tel quel, avec sa source : il est écrit pour être lu par la personne qui vérifie. Les codes possibles sont sur la page des <a href={SIGNALS_PATH}>signaux</a>.
+
+## JavaScript
+
+Avec `fetch`, dans Node.js ou un autre environnement serveur. N'appelle pas l'API depuis un navigateur : ta clé y serait visible.
+
+```js title="check.mjs"
+const url = new URL('/v1/check', process.env.ARNAKOFF_API_URL);
+url.searchParams.set('q', 'armen.ltd');
+
+const response = await fetch(url, {
+  headers: { Authorization: `Bearer ${process.env.ARNAKOFF_API_KEY}` },
+});
+const report = await response.json();
+if (!response.ok) throw new Error(`${report.status} ${report.title} : ${report.detail}`);
+
+console.log(report.summary ?? `${report.signals.length} signal(s) pour ${report.input}`);
+for (const signal of report.signals) {
+  console.log(`[${signal.level}] ${signal.message} Source : ${signal.source_url}`);
+}
+```
+
+```txt
+$ node check.mjs
+1 signal(s) pour armen.ltd
+[alerte] Figure sur la liste noire de l'AMF (catégorie Usurpation) depuis le 08/10/2026. Source : https://www.amf-france.org/fr/espace-epargnants/proteger-son-epargne/listes-noires-et-mises-en-garde
+```
+
+## Python
+
+Avec la bibliothèque standard, sans dépendance.
+
+```python title="check.py"
+import json
+import os
+import urllib.error
+import urllib.parse
+import urllib.request
+
+url = urllib.parse.urljoin(os.environ["ARNAKOFF_API_URL"], "/v1/check")
+url += "?" + urllib.parse.urlencode({"q": "armen.ltd"})
+request = urllib.request.Request(
+    url, headers={"Authorization": f"Bearer {os.environ['ARNAKOFF_API_KEY']}"}
+)
+
+try:
+    with urllib.request.urlopen(request, timeout=15) as response:
+        report = json.load(response)
+except urllib.error.HTTPError as error:
+    problem = json.load(error)
+    raise SystemExit(f"{problem['status']} {problem['title']} : {problem['detail']}")
+
+print(report["summary"] or f"{len(report['signals'])} signal(s) pour {report['input']}")
+for signal in report["signals"]:
+    print(f"[{signal['level']}] {signal['message']} Source : {signal['source_url']}")
+```
+
+```txt
+$ python3 check.py
+1 signal(s) pour armen.ltd
+[alerte] Figure sur la liste noire de l'AMF (catégorie Usurpation) depuis le 08/10/2026. Source : https://www.amf-france.org/fr/espace-epargnants/proteger-son-epargne/listes-noires-et-mises-en-garde
+```
+
+## Go
+
+Avec la bibliothèque standard.
+
+```go title="main.go"
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"net/url"
+	"os"
+	"time"
+)
+
+type report struct {
+	Input   string  `json:"input"`
+	Summary *string `json:"summary"`
+	Signals []struct {
+		Level     string `json:"level"`
+		Message   string `json:"message"`
+		SourceURL string `json:"source_url"`
+	} `json:"signals"`
+}
+
+type problem struct {
+	Status int    `json:"status"`
+	Title  string `json:"title"`
+	Detail string `json:"detail"`
+}
+
+func main() {
+	u, err := url.JoinPath(os.Getenv("ARNAKOFF_API_URL"), "/v1/check")
+	if err != nil {
+		log.Fatal(err)
+	}
+	req, err := http.NewRequest(http.MethodGet, u+"?"+url.Values{"q": {"armen.ltd"}}.Encode(), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("ARNAKOFF_API_KEY"))
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		var p problem
+		if err := json.NewDecoder(resp.Body).Decode(&p); err != nil {
+			log.Fatal(err)
+		}
+		log.Fatalf("%d %s : %s", p.Status, p.Title, p.Detail)
+	}
+	var r report
+	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
+		log.Fatal(err)
+	}
+
+	if r.Summary != nil {
+		fmt.Println(*r.Summary)
+	} else {
+		fmt.Printf("%d signal(s) pour %s\n", len(r.Signals), r.Input)
+	}
+	for _, s := range r.Signals {
+		fmt.Printf("[%s] %s Source : %s\n", s.Level, s.Message, s.SourceURL)
+	}
+}
+```
+
+```txt
+$ go run main.go
+1 signal(s) pour armen.ltd
+[alerte] Figure sur la liste noire de l'AMF (catégorie Usurpation) depuis le 08/10/2026. Source : https://www.amf-france.org/fr/espace-epargnants/proteger-son-epargne/listes-noires-et-mises-en-garde
+```
+
+## Quand ça échoue
+
+Une erreur est un objet `application/problem+json` (RFC 9457) : `status`, `title` et `detail` en français, et un `code` stable à tester dans ton code. Les trois exemples l'affichent. Sans clé :
+
+```json
+{
+  "type": "https://arnakoff.com/docs/erreurs/missing_api_key",
+  "title": "Clé API manquante",
+  "status": 401,
+  "detail": "Cette ressource demande une clé API, envoyée dans l'en-tête Authorization avec le schéma Bearer.",
+  "instance": "tag:arnakoff.com,2026:request:5NDVWENTN7ERLDTSOPH55VYGO5",
+  "code": "missing_api_key"
+}
+```
+
+Avec une clé mal formée, inconnue ou révoquée, le code est `invalid_api_key`. Une source qui ne répond pas ne fait pas échouer la vérification : elle est marquée `indisponible` dans `sources`.
+
+Toutes les routes, leurs paramètres et leurs erreurs sont dans la <a href={REFERENCE_PATH}>référence de l'API</a>.

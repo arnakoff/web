@@ -30,8 +30,16 @@ export default defineConfig({
           },
         ]),
       ],
+      // Long lines wrap instead of scrolling: a scrolling code block is a
+      // region that keyboard users cannot reach (axe scrollable-region-focusable).
+      expressiveCode: { defaultProps: { wrap: true } },
       routeMiddleware: './src/routeData.ts',
-      sidebar: [{ slug: 'docs' }, { slug: 'docs/versions' }, ...openAPISidebarGroups],
+      sidebar: [
+        { slug: 'docs' },
+        { slug: 'docs/demarrage-rapide' },
+        { slug: 'docs/versions' },
+        ...openAPISidebarGroups,
+      ],
       favicon: FAVICON_SVG,
       head: [
         ...ICON_LINKS.map((attrs) => ({ tag: /** @type {const} */ ('link'), attrs })),
