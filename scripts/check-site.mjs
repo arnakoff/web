@@ -3,8 +3,9 @@
 // page, every page carries its required metadata, share image included, and
 // every error `type` of the API contract is a built page, search engines
 // get robots.txt, a sitemap of the pages and structured data,
-// and dist/_headers gives every page the security headers and a CSP that
-// allows its inline scripts.
+// dist/_headers gives every page the security headers and a CSP that
+// allows its inline scripts, and every English label of the generated API
+// reference carries `lang="en"`.
 // Run with `npm test` after `npm run build`.
 import { existsSync, readFileSync } from 'node:fs';
 import { relative, sep } from 'node:path';
@@ -16,7 +17,9 @@ import {
   SITE_NAME,
   SITEMAP_PATH,
 } from '../src/lib/meta.ts';
-import { SITE_URL } from '../src/lib/site.ts';
+import openapiPackage from 'starlight-openapi/package.json' with { type: 'json' };
+import { LABELS_VERSION, OVERVIEW, unmarkedEnglishLabels } from '../src/lib/reference.ts';
+import { REFERENCE_PATH, SITE_URL } from '../src/lib/site.ts';
 import {
   DIST,
   HASHES_PLACEHOLDER,
@@ -159,6 +162,15 @@ else if (headersText.includes(HASHES_PLACEHOLDER)) {
   fail('/_headers', `a line is longer than ${String(MAX_HEADERS_LINE)} characters`);
 }
 
+// The English labels of the API reference were listed from one version of
+// starlight-openapi: another one may write new labels.
+if (openapiPackage.version !== LABELS_VERSION) {
+  fail(
+    'src/lib/reference.ts',
+    `src/lib/reference.ts lists the labels of starlight-openapi ${LABELS_VERSION}, ${openapiPackage.version} is installed: check its labels, then update LABELS_VERSION`,
+  );
+}
+
 for (const file of htmlFiles(DIST)) {
   const name = relative(DIST, file).split(sep).join('/');
   const html = readFileSync(file, 'utf8');
@@ -212,6 +224,13 @@ for (const file of htmlFiles(DIST)) {
     fail(name, '<meta name="robots" content="noindex"> is missing');
   }
 
+  // In the reference, a passage in English says so (RGAA 8.7); « Overview »
+  // is translated on every page, as the sidebar links to it.
+  if (pageUrl.pathname.startsWith(REFERENCE_PATH)) {
+    for (const label of unmarkedEnglishLabels(html)) fail(name, `"${label}" lacks lang="en"`);
+  }
+  if (new RegExp(`>\\s*${OVERVIEW}\\s*<`).test(html)) fail(name, `"${OVERVIEW}" is not translated`);
+
   // Structured data: valid JSON, and the home page describes the organization.
   const jsonLd = Array.from(
     html.matchAll(/<script\b[^>]*type=["']?application\/ld\+json["']?[^>]*>([\s\S]*?)<\/script>/gi),
@@ -255,5 +274,5 @@ if (errors.length > 0) {
   process.exit(1);
 }
 console.log(
-  `dist/ OK: ${String(PAGES.length)} expected pages, ${String(IMAGES.length + 1)} icons and images, internal links, metadata, robots.txt, sitemap, JSON-LD and security headers checked.`,
+  `dist/ OK: ${String(PAGES.length)} expected pages, ${String(IMAGES.length + 1)} icons and images, internal links, metadata, English labels, robots.txt, sitemap, JSON-LD and security headers checked.`,
 );
