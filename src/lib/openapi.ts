@@ -1,13 +1,13 @@
 // Reads the copy of the API's OpenAPI contract (api/openapi.yaml, copied by
 // `npm run sync`), so a page quotes the contract instead of a hand-written copy.
 import { parse } from 'yaml';
+import { problemsOf, type Contract } from './problems';
 import contract from '../content/api/openapi.yaml?raw';
 
-interface Contract {
-  components: { examples: Record<string, { value: Record<string, unknown> }> };
-}
-
 const { components } = parse(contract) as Contract;
+
+/** The errors the API answers, each with its page (lib/problems.ts). */
+export const PROBLEMS = problemsOf(contract);
 
 /**
  * Returns a named example of `components.examples`. A name the contract no

@@ -1,7 +1,8 @@
 // Checks the built site in dist/: expected pages and icons exist, every
 // internal link resolves to a built file or, for `#id`, to an element of its
 // page, every page carries its required metadata, share image included, and
-// search engines get robots.txt, a sitemap of the pages and structured data,
+// every error `type` of the API contract is a built page, search engines
+// get robots.txt, a sitemap of the pages and structured data,
 // and dist/_headers gives every page the security headers and a CSP that
 // allows its inline scripts.
 // Run with `npm test` after `npm run build`.
@@ -21,6 +22,7 @@ import {
   HASHES_PLACEHOLDER,
   HEADERS_FILE,
   PAGES,
+  PROBLEMS,
   headersFor,
   htmlFiles,
   inlineScriptHashes,
@@ -93,6 +95,13 @@ requireDist();
 
 for (const page of PAGES) {
   if (!resolve(page)) fail(page, 'expected page is not built');
+}
+
+// The API sends each error with its `type`: the URI, without a trailing
+// slash, of the page that documents it on this site.
+for (const { code, type } of PROBLEMS) {
+  const url = new URL(type);
+  if (url.origin !== SITE_URL || !resolve(url.pathname)) fail(type, `no page documents ${code}`);
 }
 
 if (!resolve(FAVICON_SVG)) fail(FAVICON_SVG, 'expected icon is not built');

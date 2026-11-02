@@ -3,7 +3,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import starlightOpenAPI, { openAPISidebarGroups } from 'starlight-openapi';
 import { FAVICON_SVG, ICON_LINKS, OG_LOCALE, SITE_NAME, shareImageMeta } from './src/lib/meta.ts';
-import { REFERENCE_BASE, REPO_WEB_URL, SITE_URL } from './src/lib/site.ts';
+import { ERRORS_PATH, REFERENCE_BASE, REPO_WEB_URL, SITE_URL } from './src/lib/site.ts';
 
 export default defineConfig({
   site: SITE_URL,
@@ -38,6 +38,8 @@ export default defineConfig({
         { slug: 'docs' },
         { slug: 'docs/demarrage-rapide' },
         { slug: 'docs/versions' },
+        // Plain Astro pages generated from the contract's errors (src/pages/docs/erreurs/).
+        { label: 'Erreurs', link: ERRORS_PATH },
         ...openAPISidebarGroups,
       ],
       favicon: FAVICON_SVG,
