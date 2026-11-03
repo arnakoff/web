@@ -38,8 +38,15 @@ try {
       const url = new URL(request.url());
       if (ANALYTICS_ORIGINS.includes(url.origin)) analytics.add(url.origin);
     });
-    // Waits for the network to go quiet, so the analytics script has run.
-    const response = await page.goto(origin + path, { waitUntil: 'networkidle' });
+    // Waits for the network to go quiet, so the analytics script has run. The
+    // Turnstile widget of the checker may never go quiet: it retries outside
+    // arnakoff.com, the only hostname of its site key.
+    const response = await page.goto(origin + path, { waitUntil: 'load' });
+    await page
+      .waitForLoadState('networkidle', { timeout: 15_000 })
+      .catch((/** @type {unknown} */ error) => {
+        if (path !== CHECKER_PATH) throw error;
+      });
     // Cloudflare Pages must drop the policy of /* on the checker, not join it.
     const csp = (await response?.allHeaders())?.['content-security-policy'] ?? '';
     if (csp.includes(TURNSTILE_ORIGIN) !== (path === CHECKER_PATH) || csp.includes(',')) {
