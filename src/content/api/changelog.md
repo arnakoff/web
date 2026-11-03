@@ -1,5 +1,94 @@
 # Changelog
 
+## [0.49.0](https://github.com/arnakoff/api/compare/v0.48.0...v0.49.0) (2026-11-03)
+
+
+### Features
+
+* **ci:** publish signed images to ghcr with sbom and provenance ([#231](https://github.com/arnakoff/api/issues/231)) ([faf4880](https://github.com/arnakoff/api/commit/faf4880212d56daad73877be582b7e85de8741cf)), closes [#69](https://github.com/arnakoff/api/issues/69)
+
+## [0.48.0](https://github.com/arnakoff/api/compare/v0.47.1...v0.48.0) (2026-11-03)
+
+
+### Features
+
+* build a distroless non-root container image ([#229](https://github.com/arnakoff/api/issues/229)) ([71b2d04](https://github.com/arnakoff/api/commit/71b2d04f46230daa729a78a3795dc7486c9b6c4b)), closes [#68](https://github.com/arnakoff/api/issues/68)
+
+## [0.47.1](https://github.com/arnakoff/api/compare/v0.47.0...v0.47.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* **domain:** quote third-party text without hidden characters ([#227](https://github.com/arnakoff/api/issues/227)) ([01eacd0](https://github.com/arnakoff/api/commit/01eacd0926f7f75f951fcb9362b1d9e76b707ac3)), closes [#65](https://github.com/arnakoff/api/issues/65)
+
+## [0.47.0](https://github.com/arnakoff/api/compare/v0.46.0...v0.47.0) (2026-11-03)
+
+
+### Features
+
+* **mcp:** serve the MCP tools over HTTP behind the API key ([#225](https://github.com/arnakoff/api/issues/225)) ([1b8b6a9](https://github.com/arnakoff/api/commit/1b8b6a92ac91df4726af185f25abf26187411032)), closes [#64](https://github.com/arnakoff/api/issues/64)
+
+## [0.46.0](https://github.com/arnakoff/api/compare/v0.45.0...v0.46.0) (2026-11-03)
+
+
+### Features
+
+* **httpapi:** declare the public host in the contract ([#223](https://github.com/arnakoff/api/issues/223)) ([51702b0](https://github.com/arnakoff/api/commit/51702b05cce18ca0d330b6d766b2ee719e73313e)), closes [#187](https://github.com/arnakoff/api/issues/187)
+* **httpapi:** load the official domains in every check ([#221](https://github.com/arnakoff/api/issues/221)) ([ad7dfba](https://github.com/arnakoff/api/commit/ad7dfba455c25c23af19cd17477bdebca3311305)), closes [#167](https://github.com/arnakoff/api/issues/167)
+
+## [0.45.0](https://github.com/arnakoff/api/compare/v0.44.1...v0.45.0) (2026-11-03)
+
+
+### Features
+
+* **mcp:** serve check and list_sources over stdio ([#217](https://github.com/arnakoff/api/issues/217)) ([5066d6e](https://github.com/arnakoff/api/commit/5066d6eac17bccd0051a36b834d6b685d5e0e619)), closes [#63](https://github.com/arnakoff/api/issues/63)
+
+## [0.44.1](https://github.com/arnakoff/api/compare/v0.44.0...v0.44.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* **httpapi:** spend the refused-key budget only on refusals ([#215](https://github.com/arnakoff/api/issues/215)) ([c824b4e](https://github.com/arnakoff/api/commit/c824b4ebe58650d1528e7a1f9c010310eee8db85)), closes [#209](https://github.com/arnakoff/api/issues/209)
+
+## [0.44.0](https://github.com/arnakoff/api/compare/v0.43.0...v0.44.0) (2026-11-03)
+
+
+### Features
+
+* **httpapi:** serve new clients when the address limiter is full ([#212](https://github.com/arnakoff/api/issues/212)) ([62040bf](https://github.com/arnakoff/api/commit/62040bfa80ec91ca68b8f301b0fb16939c381528)), closes [#205](https://github.com/arnakoff/api/issues/205)
+
+## [0.43.0](https://github.com/arnakoff/api/compare/v0.42.0...v0.43.0) (2026-11-03)
+
+
+### Features
+
+* **httpapi:** keep valid api keys in memory for 30 seconds ([#210](https://github.com/arnakoff/api/issues/210)) ([83ce315](https://github.com/arnakoff/api/commit/83ce315e184e77585636f7892b7f964a77debc8c)), closes [#198](https://github.com/arnakoff/api/issues/198)
+
+## [0.42.0](https://github.com/arnakoff/api/compare/v0.41.0...v0.42.0) (2026-11-02)
+
+
+### Features
+
+* **httpapi:** add a keyless demo check for the site's checker ([#207](https://github.com/arnakoff/api/issues/207)) ([5118973](https://github.com/arnakoff/api/commit/511897306203e509d599f4c3fef04b56bfa0a5d0)), closes [#60](https://github.com/arnakoff/api/issues/60)
+
+## [0.41.0](https://github.com/arnakoff/api/compare/v0.40.0...v0.41.0) (2026-11-02)
+
+
+### Features
+
+* **httpapi:** limit refused api keys per client address before the key lookup ([#204](https://github.com/arnakoff/api/issues/204)) ([5edea29](https://github.com/arnakoff/api/commit/5edea291a4bc97df0ad39b74d0d8c252f347ba19)), closes [#197](https://github.com/arnakoff/api/issues/197)
+
+## [0.40.0](https://github.com/arnakoff/api/compare/v0.39.0...v0.40.0) (2026-11-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* **httpapi:** limit requests per api key and per client address ([#201](https://github.com/arnakoff/api/issues/201))
+
+### Features
+
+* **httpapi:** limit requests per api key and per client address ([#201](https://github.com/arnakoff/api/issues/201)) ([2f69a4b](https://github.com/arnakoff/api/commit/2f69a4bf3db58f6c7efdb217c0d983f5ce6e4231)), closes [#58](https://github.com/arnakoff/api/issues/58)
+
 ## [0.39.0](https://github.com/arnakoff/api/compare/v0.38.0...v0.39.0) (2026-11-02)
 
 

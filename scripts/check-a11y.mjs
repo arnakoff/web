@@ -143,8 +143,12 @@ function stubTurnstile(page) {
   );
 }
 
-/** More tab stops than this on one page means focus never cycles back. */
-const MAX_TAB_STOPS = 200;
+/**
+ * Everything that can take focus. More tab stops than the page has of these
+ * means focus never leaves it: a trap.
+ */
+const FOCUSABLE =
+  'a[href], area[href], button, input, select, textarea, summary, iframe, [tabindex], [contenteditable]';
 
 /** @type {string[]} */
 const errors = [];
@@ -212,9 +216,10 @@ async function checkKeyboard(page, url) {
 
   // From the top again, every tab stop until focus leaves the page.
   await page.goto(url);
+  const maxStops = (await page.locator(FOCUSABLE).count()) + 1;
   for (let stop = 0; ; stop += 1) {
-    if (stop === MAX_TAB_STOPS) {
-      problems.push(`focus is still in the page after ${String(MAX_TAB_STOPS)} tab stops`);
+    if (stop === maxStops) {
+      problems.push(`focus is still in the page after ${String(maxStops)} tab stops`);
       break;
     }
     await page.keyboard.press('Tab');
