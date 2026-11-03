@@ -44,6 +44,17 @@ export const API_ORIGIN = new URL(API_URL).origin;
 /** Keyless check of the online checker (`POST /v1/demo/check`). */
 export const DEMO_CHECK_URL = `${API_URL}/demo/check`;
 
+/**
+ * Cloudflare Turnstile, the anti-abuse check of the online checker: its script,
+ * in explicit rendering, and the public site key of the arnakoff.com widget,
+ * whose secret key is `ARNAKOFF_TURNSTILE_SECRET` of arnakoff/api. Only
+ * `/verifier/` lets its origin in (public/_headers).
+ */
+export const TURNSTILE_SCRIPT_URL =
+  'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+export const TURNSTILE_ORIGIN = new URL(TURNSTILE_SCRIPT_URL).origin;
+export const TURNSTILE_SITE_KEY = '0x4AAAAAAFxr6UA4T-FbNb5I';
+
 /** GitHub organization of Arnakoff, and its source repositories. */
 export const ORG_GITHUB_URL = 'https://github.com/arnakoff';
 export const REPO_WEB_URL = `${ORG_GITHUB_URL}/web`;

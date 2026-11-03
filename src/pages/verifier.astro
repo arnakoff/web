@@ -3,8 +3,8 @@
 // (lib/checker.ts), its signals shown as callouts of their level, or its
 // RFC 9457 error. The only page with client JavaScript beyond the theme. The
 // input has no `name` and the CSP forbids form submission, so it can never
-// end up in a URL. The anti-abuse token is written into #checker-token by the
-// Cloudflare Turnstile widget (issue #28); until then every check stops before
+// end up in a URL. Each check carries a token of the Cloudflare Turnstile
+// widget, rendered in #checker-challenge; without one, the check stops before
 // the request.
 import Base from '../layouts/Base.astro';
 import ApiStatus from '../components/ApiStatus.astro';
@@ -46,10 +46,11 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
       />
       <Button type="submit">Vérifier</Button>
     </div>
-    <input id="checker-token" type="hidden" />
+    <div id="checker-challenge"></div>
     <p id="checker-privacy" class="hint">
       Ce que tu colles part vers l'API dans le corps de la requête, jamais dans l'adresse de la
-      page. L'API ne le conserve pas.
+      page. L'API ne le conserve pas. Le contrôle anti-abus est Turnstile, un service de Cloudflare
+      : ce que tu colles ne lui est pas envoyé.
     </p>
   </form>
   <noscript>
@@ -86,6 +87,7 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
     frenchDate,
     httpsUrl,
     problemPage,
+    renderAntiAbuse,
     requestId,
     type Problem,
     type Report,
@@ -95,7 +97,7 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
 
   const form = document.querySelector<HTMLFormElement>('#checker');
   const input = document.querySelector<HTMLInputElement>('#checker-q');
-  const token = document.querySelector<HTMLInputElement>('#checker-token');
+  const challenge = document.querySelector<HTMLElement>('#checker-challenge');
   const submit = form?.querySelector<HTMLButtonElement>('button[type="submit"]');
   const status = document.querySelector<HTMLElement>('#checker-status');
   const result = document.querySelector<HTMLElement>('#checker-result');
@@ -199,9 +201,17 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
     return [callout('attention', undefined, [paragraph(text)])];
   }
 
+  /** The current anti-abuse token, `''` until the widget gives one. */
+  let token = '';
+  const newToken = challenge
+    ? renderAntiAbuse(challenge, (value) => {
+        token = value;
+      })
+    : () => undefined;
+
   form?.addEventListener('submit', (event) => {
     event.preventDefault();
-    if (!form || !input || !token || !submit || !status) return;
+    if (!form || !input || !submit || !status) return;
     const q = input.value.trim();
     if (q === '') {
       status.textContent = '';
@@ -209,17 +219,23 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
       input.focus();
       return;
     }
-    if (token.value === '') {
+    if (token === '') {
       status.textContent = '';
       show(
-        message("La vérification anti-abus n'est pas encore prête. Recharge la page et réessaie."),
+        message(
+          "Le contrôle anti-abus n'est pas encore validé. Attends quelques secondes, puis réessaie. S'il ne s'affiche pas, recharge la page.",
+        ),
       );
       return;
     }
+    // The API accepts each token once: the next check needs a new one.
+    const sent = token;
+    token = '';
+    newToken();
     submit.disabled = true;
     form.setAttribute('aria-busy', 'true');
     status.textContent = 'Vérification en cours…';
-    void demoCheck(q, token.value).then((answer) => {
+    void demoCheck(q, sent).then((answer) => {
       submit.disabled = false;
       form.removeAttribute('aria-busy');
       status.textContent = '';
@@ -262,6 +278,12 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
     background: var(--color-bg);
     color: var(--color-text);
     font: inherit;
+  }
+
+  /* Room for the Turnstile widget, 65 px high, so the page does not shift. */
+  #checker-challenge {
+    min-height: 65px;
+    margin-block: var(--space-2);
   }
 
   #checker-result {

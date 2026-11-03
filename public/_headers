@@ -12,6 +12,11 @@
 #   leave the site: `npm test` fails on any outside request.
 # - {api-origin} in connect-src: the online checker (/verifier/) calls
 #   POST /v1/demo/check of the API.
+# - /verifier/ alone also lets in Cloudflare Turnstile, the checker's
+#   anti-abuse widget: its script and its frame. The build writes there, in
+#   place of {checker-csp}, the policy of every page with TURNSTILE_ORIGIN of
+#   src/lib/site.ts in script-src and frame-src; the first line drops the
+#   policy of /*, which would otherwise be joined to it.
 # A new outside origin goes here, in the same pull request.
 /*
   Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com/beacon.min.js {inline-script-hashes}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' {api-origin} https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
@@ -21,3 +26,7 @@
   Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), usb=(), xr-spatial-tracking=(), browsing-topics=()
   Cross-Origin-Opener-Policy: same-origin
   X-Frame-Options: DENY
+
+/verifier/
+  ! Content-Security-Policy
+  Content-Security-Policy: {checker-csp}

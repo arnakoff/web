@@ -19,8 +19,10 @@ import {
 } from '../src/lib/meta.ts';
 import openapiPackage from 'starlight-openapi/package.json' with { type: 'json' };
 import { LABELS_VERSION, OVERVIEW, unmarkedEnglishLabels } from '../src/lib/reference.ts';
-import { REFERENCE_PATH, SITE_URL } from '../src/lib/site.ts';
+import { CHECKER_PATH, REFERENCE_PATH, SITE_URL, TURNSTILE_ORIGIN } from '../src/lib/site.ts';
 import {
+  API_ORIGIN_PLACEHOLDER,
+  CHECKER_CSP_PLACEHOLDER,
   DIST,
   HASHES_PLACEHOLDER,
   HEADERS_FILE,
@@ -156,8 +158,12 @@ else {
 // _headers: filled by the build, short enough lines, every security header.
 const headersText = existsSync(HEADERS_FILE) ? readFileSync(HEADERS_FILE, 'utf8') : '';
 if (!headersText) fail('/_headers', 'is not built');
-else if (headersText.includes(HASHES_PLACEHOLDER)) {
-  fail('/_headers', `${HASHES_PLACEHOLDER} is not replaced: run scripts/build-headers.mjs`);
+else if (
+  [HASHES_PLACEHOLDER, API_ORIGIN_PLACEHOLDER, CHECKER_CSP_PLACEHOLDER].some((placeholder) =>
+    headersText.includes(placeholder),
+  )
+) {
+  fail('/_headers', 'a placeholder is not replaced: run scripts/build-headers.mjs');
 } else if (headersText.split('\n').some((line) => line.length > MAX_HEADERS_LINE)) {
   fail('/_headers', `a line is longer than ${String(MAX_HEADERS_LINE)} characters`);
 }
@@ -182,10 +188,24 @@ for (const file of htmlFiles(DIST)) {
     for (const header of SECURITY_HEADERS) {
       if (!headers[header]) fail(name, `${header} header is missing`);
     }
-    const scriptSrc =
-      /(?:^|;)\s*script-src\s([^;]*)/.exec(headers['Content-Security-Policy'] ?? '')?.[1] ?? '';
+    const csp = headers['Content-Security-Policy'] ?? '';
+    /** @param {string} directive */
+    const sources = (directive) =>
+      (new RegExp(`(?:^|;)\\s*${directive}\\s([^;]*)`).exec(csp)?.[1] ?? '').split(/\s+/);
     for (const hash of inlineScriptHashes(html)) {
-      if (!scriptSrc.split(/\s+/).includes(hash)) fail(name, `CSP script-src lacks ${hash}`);
+      if (!sources('script-src').includes(hash)) fail(name, `CSP script-src lacks ${hash}`);
+    }
+    // Turnstile, the anti-abuse widget, is let in on the checker only, by a
+    // single policy: a second one joined with a comma would block it.
+    if (pageUrl.pathname === CHECKER_PATH) {
+      if (csp.includes(','))
+        fail(name, 'has two Content-Security-Policy values: the one of /* is not dropped');
+      for (const directive of ['script-src', 'frame-src']) {
+        if (!sources(directive).includes(TURNSTILE_ORIGIN))
+          fail(name, `CSP ${directive} lacks ${TURNSTILE_ORIGIN}`);
+      }
+    } else if (csp.includes(TURNSTILE_ORIGIN)) {
+      fail(name, `CSP lets in ${TURNSTILE_ORIGIN}, which only ${CHECKER_PATH} needs`);
     }
   }
 
