@@ -5,7 +5,8 @@
 // input has no `name` and the CSP forbids form submission, so it can never
 // end up in a URL. Each check carries a token of the Cloudflare Turnstile
 // widget, rendered in #checker-challenge; without one, the check stops before
-// the request.
+// the request. A domain's result gets a share link (lib/share.ts) that carries
+// the domain alone, in the fragment; opening it runs the check again.
 import Base from '../layouts/Base.astro';
 import ApiStatus from '../components/ApiStatus.astro';
 import Button from '../components/Button.astro';
@@ -77,6 +78,20 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
       <Callout level={level} />
     </template>
   ))}
+  <template data-share>
+    <div class="share">
+      <p>
+        Pour partager ce résultat, envoie ce lien. Il contient seulement le domaine : qui l'ouvre
+        refait la vérification avec les sources du moment.
+      </p>
+      <p class="share-link">
+        <a></a>
+      </p>
+      <Button variant="secondary" data-copy>
+        Copier le lien
+      </Button>
+    </div>
+  </template>
 </Base>
 
 <script>
@@ -93,6 +108,7 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
     type Report,
   } from '../lib/checker';
   import { INPUT_NAMES } from '../lib/inputs';
+  import { shareUrl, sharedSite } from '../lib/share';
   import { HOW_IT_WORKS_PATH } from '../lib/site';
 
   const form = document.querySelector<HTMLFormElement>('#checker');
@@ -120,15 +136,39 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
     return p;
   }
 
+  /** A copy of the element of the page's template that `selector` finds. */
+  function clone(selector: string): Element {
+    const node = document
+      .querySelector<HTMLTemplateElement>(selector)
+      ?.content.firstElementChild?.cloneNode(true);
+    if (!(node instanceof Element)) throw new Error(`No template ${selector}.`);
+    return node;
+  }
+
   /** A Callout of `level` cloned from the page's templates, with `children` as its body. */
   function callout(level: CalloutLevel, title: string | undefined, children: Node[]): Element {
-    const template = document.querySelector<HTMLTemplateElement>(
-      `template[data-callout="${level}"]`,
-    );
-    const node = template?.content.firstElementChild?.cloneNode(true);
-    if (!(node instanceof Element)) throw new Error(`No callout template for ${level}.`);
+    const node = clone(`template[data-callout="${level}"]`);
     if (title) node.querySelector('.label')?.append(`\u00a0: ${title}`);
     node.querySelector('.body')?.append(...children);
+    return node;
+  }
+
+  /** The share block of `href`, cloned from the page's template, with its copy button. */
+  function share(href: string): Element {
+    const node = clone('template[data-share]');
+    const link = node.querySelector('a');
+    if (link) link.href = link.textContent = href;
+    node.querySelector('[data-copy]')?.addEventListener('click', () => {
+      void navigator.clipboard
+        .writeText(href)
+        .then(
+          () => 'Lien copié.',
+          () => 'Copie impossible : sélectionne le lien pour le copier.',
+        )
+        .then((text) => {
+          if (status) status.textContent = text;
+        });
+    });
     return node;
   }
 
@@ -176,6 +216,8 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
         ),
       );
     }
+    const href = shareUrl(report);
+    if (href) nodes.push(share(href));
     return nodes;
   }
 
@@ -203,9 +245,18 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
 
   /** The current anti-abuse token, `''` until the widget gives one. */
   let token = '';
+  /** A share link's domain, checked as soon as the first token comes. */
+  let shared = sharedSite(location.hash);
+  if (shared && input) input.value = shared;
+  // The address must not keep naming a domain once another input is checked.
+  if (location.hash) history.replaceState(null, '', location.pathname);
   const newToken = challenge
     ? renderAntiAbuse(challenge, (value) => {
         token = value;
+        if (shared && token !== '') {
+          shared = undefined;
+          form?.requestSubmit();
+        }
       })
     : () => undefined;
 
@@ -290,7 +341,12 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
     margin-block: var(--space-6);
   }
 
-  #checker-output > :global(p) {
+  #checker-output > :global(p),
+  .share-link {
     overflow-wrap: anywhere;
+  }
+
+  .share {
+    margin-block-start: var(--space-6);
   }
 </style>
