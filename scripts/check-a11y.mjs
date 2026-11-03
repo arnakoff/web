@@ -7,13 +7,18 @@
 // - served with the headers of dist/_headers, nothing breaks the CSP, the
 //   docs search included;
 // - no tracker: no request leaves the site, no cookie is set and browser
-//   storage holds nothing but interface state.
+//   storage holds nothing but interface state;
+// - the online checker, with the API's answers taken from the examples of the
+//   contract, shows each one readably and sends the input in the body only.
 // Run with `npm test` after `npm run build`. Chromium comes from
 // `npx playwright install --only-shell chromium`.
 // Callbacks given to page.evaluate run in the browser.
 /* global document, getComputedStyle, HTMLAnchorElement, location, Node, window */
+import { readFileSync } from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
 import { chromium } from 'playwright';
+import { parse } from 'yaml';
+import { API_ORIGIN, CHECKER_PATH, DEMO_CHECK_URL } from '../src/lib/site.ts';
 import { DIST, PAGES, requireDist, serveDist } from './dist.mjs';
 import { checkTrackers, watchPage } from './trackers.mjs';
 
@@ -47,6 +52,44 @@ const ACCEPTED = [
 
 /** Page where the docs search is run, and a word it must find. */
 const SEARCH = { path: '/docs/', query: 'API' };
+
+/** The copy of the API contract, whose examples are the checker's simulated answers. */
+const CONTRACT = /** @type {unknown} */ (
+  parse(readFileSync(new URL('../src/content/api/openapi.yaml', import.meta.url), 'utf8'))
+);
+const EXAMPLES = /** @type {import('../src/lib/problems.ts').Contract} */ (CONTRACT).components
+  .examples;
+
+/** The source page of the contract's example signal. */
+const SIGNAL_SOURCE_URL = /** @type {{ signals: { source_url: string }[] }} */ (
+  /** @type {unknown} */ (EXAMPLES.ReportBlacklisted.value)
+).signals[0].source_url;
+
+/**
+ * Answers the checker is given, and a text and a link it must then show:
+ * each `example` is a contract example; without one, the request fails.
+ */
+const CHECKER_CASES = [
+  {
+    example: 'ReportBlacklisted',
+    status: 200,
+    text: 'Figure sur la liste noire',
+    link: SIGNAL_SOURCE_URL,
+  },
+  {
+    example: 'ReportNoSignal',
+    status: 200,
+    text: 'Aucun signal connu dans nos sources',
+    link: '/comment-ca-marche/',
+  },
+  {
+    example: 'ProblemInvalidInput',
+    status: 422,
+    text: '7NQJ4ZWKX3C5RB2D6HVMTPLE9A',
+    link: '/docs/erreurs/invalid_input/',
+  },
+  { text: "L'API ne répond pas" },
+];
 
 /** More tab stops than this on one page means focus never cycles back. */
 const MAX_TAB_STOPS = 200;
@@ -151,9 +194,85 @@ async function checkSearch(browser) {
   await page.close();
 }
 
+/**
+ * Runs the online checker against simulated answers of the API, then axe on
+ * the shown result.
+ * @param {import('playwright').Browser} browser
+ */
+async function checkChecker(browser) {
+  for (const { example, status, text, link } of CHECKER_CASES) {
+    const where = `${CHECKER_PATH} checker ${example ?? 'unreachable'}`;
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    watchPage(page, where, origin, errors, [API_ORIGIN]);
+    /** @type {string[]} */
+    const sent = [];
+    await page.route(DEMO_CHECK_URL, async (route) => {
+      const request = route.request();
+      if (request.method() === 'OPTIONS') {
+        await route.fulfill({
+          status: 204,
+          headers: {
+            'Access-Control-Allow-Origin': origin,
+            'Access-Control-Allow-Methods': 'POST',
+            'Access-Control-Allow-Headers': 'Content-Type',
+          },
+        });
+        return;
+      }
+      sent.push(request.postData() ?? '');
+      if (!example) {
+        await route.abort();
+        return;
+      }
+      await route.fulfill({
+        status,
+        contentType: status === 200 ? 'application/json' : 'application/problem+json',
+        headers: { 'Access-Control-Allow-Origin': origin },
+        body: JSON.stringify(EXAMPLES[example]?.value),
+      });
+    });
+    await page.goto(origin + CHECKER_PATH);
+    // Stands for the Turnstile widget (issue #28).
+    await page.$eval('#checker-token', (input) => {
+      input.value = 'test-token';
+    });
+    await page.fill('#checker-q', 'armen.ltd');
+    await page.press('#checker-q', 'Enter');
+    try {
+      await page.getByText(text).waitFor({ timeout: 5_000 });
+    } catch {
+      errors.push(`${where}: « ${text} » is not shown`);
+    }
+    if (link && (await page.locator(`#checker-output a[href="${link}"]`).count()) === 0) {
+      errors.push(`${where}: no link to ${link}`);
+    }
+    if ((await page.evaluate(() => document.activeElement?.id)) !== 'checker-result-title') {
+      errors.push(`${where}: the focus is not on the result`);
+    }
+    if (new URL(page.url()).search !== '' || page.url().includes('armen')) {
+      errors.push(`${where}: the input is in the page's URL`);
+    }
+    /** @type {unknown} */
+    const body = JSON.parse(sent[0] ?? '{}');
+    if (sent.length !== 1 || /** @type {{ q?: unknown }} */ (body).q !== 'armen.ltd') {
+      errors.push(`${where}: the input is not sent once in the request body`);
+    }
+    const results = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
+    for (const violation of results.violations) {
+      if (violation.impact && FAILING_IMPACTS.has(violation.impact)) {
+        errors.push(`${where}: ${violation.id}: ${violation.help}`);
+      }
+    }
+    await checkTrackers(page, where, errors);
+    await context.close();
+  }
+}
+
 const browser = await chromium.launch();
 try {
   await checkSearch(browser);
+  await checkChecker(browser);
   for (const path of PAGES) {
     for (const viewport of VIEWPORTS) {
       for (const colorScheme of SCHEMES) {
@@ -202,5 +321,5 @@ if (errors.length > 0) {
   process.exit(1);
 }
 console.log(
-  `dist/ accessible: ${String(PAGES.length)} pages at ${VIEWPORTS.map(({ width }) => `${String(width)}px`).join(' and ')}, ${SCHEMES.join(' and ')}: axe WCAG 2.2 AA, overflow, keyboard, CSP and trackers checked, docs search included.`,
+  `dist/ accessible: ${String(PAGES.length)} pages at ${VIEWPORTS.map(({ width }) => `${String(width)}px`).join(' and ')}, ${SCHEMES.join(' and ')}: axe WCAG 2.2 AA, overflow, keyboard, CSP and trackers checked, docs search and online checker included.`,
 );

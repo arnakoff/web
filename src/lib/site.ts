@@ -12,6 +12,9 @@ export const SOURCES_PATH = '/sources/';
 /** Path of the page that lists the signals a check can give, with examples. */
 export const SIGNALS_PATH = '/signaux/';
 
+/** Path of the online checker. */
+export const CHECKER_PATH = '/verifier/';
+
 /** Path where Starlight serves the API documentation. */
 export const DOCS_PATH = '/docs/';
 
@@ -34,6 +37,12 @@ export const DOCS_URL = new URL(DOCS_PATH, SITE_URL).href;
  * page displays or calls it.
  */
 export const API_URL = 'https://api.arnakoff.com/v1';
+
+/** Origin of the API, the only outside origin the CSP lets the checker call. */
+export const API_ORIGIN = new URL(API_URL).origin;
+
+/** Keyless check of the online checker (`POST /v1/demo/check`). */
+export const DEMO_CHECK_URL = `${API_URL}/demo/check`;
 
 /** GitHub organization of Arnakoff, and its source repositories. */
 export const ORG_GITHUB_URL = 'https://github.com/arnakoff';
