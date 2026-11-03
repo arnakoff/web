@@ -1,0 +1,274 @@
+---
+// The online checker: one input sent to `POST /v1/demo/check` of arnakoff/api
+// (lib/checker.ts), its signals shown as callouts of their level, or its
+// RFC 9457 error. The only page with client JavaScript beyond the theme. The
+// input has no `name` and the CSP forbids form submission, so it can never
+// end up in a URL. The anti-abuse token is written into #checker-token by the
+// Cloudflare Turnstile widget (issue #28); until then every check stops before
+// the request.
+import Base from '../layouts/Base.astro';
+import ApiStatus from '../components/ApiStatus.astro';
+import Button from '../components/Button.astro';
+import Callout from '../components/Callout.astro';
+import { CALLOUT_LABELS } from '../lib/callout';
+import { HOW_IT_WORKS_PATH, SIGNALS_PATH, SOURCES_PATH } from '../lib/site';
+
+const title = 'Vérifier un lien, un numéro ou un IBAN · Arnakoff';
+const description =
+  'Colle un lien, une adresse e-mail, un numéro de téléphone, un IBAN, un SIREN ou un SIRET : Arnakoff te montre ce que ses sources publient dessus, avec le lien pour le vérifier.';
+const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
+---
+
+<Base title={title} description={description}>
+  <h1>Vérifier un lien, un numéro ou un IBAN</h1>
+  <p>
+    Colle ce que tu as reçu. Arnakoff cherche ce que ses <a href={SOURCES_PATH}>sources</a> publient
+    dessus et te donne chaque fait avec le lien pour le vérifier.
+  </p>
+
+  <ApiStatus>Le vérificateur répondra dès sa mise en service.</ApiStatus>
+
+  <form id="checker" novalidate>
+    <label for="checker-q">Ce que tu veux vérifier</label>
+    <p id="checker-hint" class="hint">
+      Un lien, une adresse e-mail, un numéro de téléphone, un IBAN, un SIREN ou un SIRET.
+    </p>
+    <div class="row">
+      <input
+        id="checker-q"
+        type="text"
+        required
+        maxlength="2048"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-describedby="checker-hint checker-privacy"
+      />
+      <Button type="submit">Vérifier</Button>
+    </div>
+    <input id="checker-token" type="hidden" />
+    <p id="checker-privacy" class="hint">
+      Ce que tu colles part vers l'API dans le corps de la requête, jamais dans l'adresse de la
+      page. L'API ne le conserve pas.
+    </p>
+  </form>
+  <noscript>
+    <p>Le vérificateur a besoin de JavaScript.</p>
+  </noscript>
+
+  <p id="checker-status" class="hint" role="status"></p>
+
+  <section id="checker-result" aria-labelledby="checker-result-title" hidden>
+    <h2 id="checker-result-title" tabindex="-1">
+      Résultat
+    </h2>
+    <div id="checker-output"></div>
+  </section>
+
+  <p>
+    Les <a href={SIGNALS_PATH}>signaux</a> décrivent chaque fait qu'une vérification peut relever.
+    Aucun signal ne veut pas dire que tout va bien : <a href={HOW_IT_WORKS_PATH}>les limites</a>{' '}
+    l'expliquent.
+  </p>
+
+  {levels.map((level) => (
+    <template data-callout={level}>
+      <Callout level={level} />
+    </template>
+  ))}
+</Base>
+
+<script>
+  import { CALLOUT_LABELS, type CalloutLevel } from '../lib/callout';
+  import {
+    NO_SIGNAL,
+    demoCheck,
+    frenchDate,
+    httpsUrl,
+    problemPage,
+    requestId,
+    type Problem,
+    type Report,
+  } from '../lib/checker';
+  import { INPUT_NAMES } from '../lib/inputs';
+  import { HOW_IT_WORKS_PATH } from '../lib/site';
+
+  const form = document.querySelector<HTMLFormElement>('#checker');
+  const input = document.querySelector<HTMLInputElement>('#checker-q');
+  const token = document.querySelector<HTMLInputElement>('#checker-token');
+  const submit = form?.querySelector<HTMLButtonElement>('button[type="submit"]');
+  const status = document.querySelector<HTMLElement>('#checker-status');
+  const result = document.querySelector<HTMLElement>('#checker-result');
+  const heading = document.querySelector<HTMLElement>('#checker-result-title');
+  const output = document.querySelector<HTMLElement>('#checker-output');
+
+  /** A paragraph of text and links. */
+  function paragraph(...parts: (string | { href: string; label: string })[]): HTMLParagraphElement {
+    const p = document.createElement('p');
+    for (const part of parts) {
+      if (typeof part === 'string') {
+        p.append(part);
+      } else {
+        const a = document.createElement('a');
+        a.href = part.href;
+        a.textContent = part.label;
+        p.append(a);
+      }
+    }
+    return p;
+  }
+
+  /** A Callout of `level` cloned from the page's templates, with `children` as its body. */
+  function callout(level: CalloutLevel, title: string | undefined, children: Node[]): Element {
+    const template = document.querySelector<HTMLTemplateElement>(
+      `template[data-callout="${level}"]`,
+    );
+    const node = template?.content.firstElementChild?.cloneNode(true);
+    if (!(node instanceof Element)) throw new Error(`No callout template for ${level}.`);
+    if (title) node.querySelector('.label')?.append(`\u00a0: ${title}`);
+    node.querySelector('.body')?.append(...children);
+    return node;
+  }
+
+  function reportNodes(report: Report): Node[] {
+    const type = INPUT_NAMES[report.type];
+    const nodes: Node[] = [
+      paragraph(`Entrée vérifiée${type ? ` (${type})` : ''} : ${report.input}`),
+    ];
+    for (const signal of report.signals) {
+      const body = [paragraph(signal.message)];
+      if (signal.advice) body.push(paragraph(`Conseil : ${signal.advice}`));
+      const href = httpsUrl(signal.source_url);
+      body.push(
+        paragraph(
+          'Source : ',
+          href ? { href, label: signal.source } : signal.source,
+          `, relevé le ${frenchDate(signal.observed_at)}.`,
+        ),
+      );
+      const level = Object.hasOwn(CALLOUT_LABELS, signal.level) ? signal.level : 'info';
+      nodes.push(callout(level, undefined, body));
+    }
+    if (report.signals.length === 0) {
+      nodes.push(
+        callout('info', undefined, [
+          paragraph(report.summary ?? NO_SIGNAL),
+          paragraph(
+            "Ce n'est pas une garantie : ",
+            { href: HOW_IT_WORKS_PATH, label: 'les limites' },
+            " l'expliquent.",
+          ),
+        ]),
+      );
+    }
+    const named = (wanted: string) =>
+      report.sources.filter(({ status }) => status === wanted).map(({ source }) => source);
+    const consulted = named('ok');
+    const missing = named('indisponible');
+    if (consulted.length > 0)
+      nodes.push(paragraph(`Sources consultées : ${consulted.join(', ')}.`));
+    if (missing.length > 0) {
+      nodes.push(
+        paragraph(
+          `Sources indisponibles pour cette vérification : ${missing.join(', ')}. L'absence de signal de leur part ne prouve rien.`,
+        ),
+      );
+    }
+    return nodes;
+  }
+
+  function problemNodes(problem: Problem): Node[] {
+    const body = [paragraph(problem.detail)];
+    const id = requestId(problem);
+    if (id)
+      body.push(paragraph(`Identifiant de la requête, à citer si tu signales un problème : ${id}`));
+    const href = problemPage(problem);
+    if (href) body.push(paragraph({ href, label: 'Comprendre cette erreur' }));
+    return [callout('attention', problem.title, body)];
+  }
+
+  /** Shows `nodes` as the result and moves the focus to its heading. */
+  function show(nodes: Node[]): void {
+    if (!result || !output || !heading) return;
+    output.replaceChildren(...nodes);
+    result.hidden = false;
+    heading.focus();
+  }
+
+  function message(text: string): Node[] {
+    return [callout('attention', undefined, [paragraph(text)])];
+  }
+
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!form || !input || !token || !submit || !status) return;
+    const q = input.value.trim();
+    if (q === '') {
+      status.textContent = '';
+      show(message('Colle un lien, une adresse e-mail, un numéro, un IBAN, un SIREN ou un SIRET.'));
+      input.focus();
+      return;
+    }
+    if (token.value === '') {
+      status.textContent = '';
+      show(
+        message("La vérification anti-abus n'est pas encore prête. Recharge la page et réessaie."),
+      );
+      return;
+    }
+    submit.disabled = true;
+    form.setAttribute('aria-busy', 'true');
+    status.textContent = 'Vérification en cours…';
+    void demoCheck(q, token.value).then((answer) => {
+      submit.disabled = false;
+      form.removeAttribute('aria-busy');
+      status.textContent = '';
+      if (answer.kind === 'report') show(reportNodes(answer.report));
+      else if (answer.kind === 'problem') show(problemNodes(answer.problem));
+      else show(message("L'API ne répond pas. Vérifie ta connexion et réessaie."));
+    });
+  });
+</script>
+
+<style>
+  form {
+    margin-block: var(--space-6);
+  }
+
+  label {
+    font-weight: 600;
+  }
+
+  .hint {
+    margin-block: var(--space-1);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block: var(--space-2);
+  }
+
+  input[type='text'] {
+    flex: 1 1 16rem;
+    min-width: 0;
+    min-height: var(--size-target);
+    padding-inline: var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+  }
+
+  #checker-result {
+    margin-block: var(--space-6);
+  }
+
+  #checker-output > :global(p) {
+    overflow-wrap: anywhere;
+  }
+</style>

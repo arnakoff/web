@@ -23,6 +23,7 @@ export const PAGES = [
   '/comment-ca-marche/',
   '/sources/',
   '/signaux/',
+  '/verifier/',
   '/docs/',
   '/docs/demarrage-rapide/',
   '/docs/versions/',
@@ -65,6 +66,9 @@ export const HEADERS_FILE = join(DIST, '_headers');
 
 /** Placeholder of `public/_headers` for the inline script hashes. */
 export const HASHES_PLACEHOLDER = '{inline-script-hashes}';
+
+/** Placeholder of `public/_headers` for the origin of the API. */
+export const API_ORIGIN_PLACEHOLDER = '{api-origin}';
 
 /**
  * Returns the CSP source of every inline script a page runs, such as

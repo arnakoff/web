@@ -5,6 +5,7 @@
 // and the build fails unless each one is quoted word for word in the copy, so
 // a wording change in the API repository cannot leave a stale example.
 import { CALLOUT_LABELS, type CalloutLevel } from './callout';
+import { INPUT_NAMES } from './inputs';
 import { slug } from './markdown';
 import COPY from '../content/api/signals.md?raw';
 
@@ -32,16 +33,6 @@ export interface SignalGroup {
   title: string;
   signals: Signal[];
 }
-
-/** French names of the contract's input types (`InputType` in openapi.yaml). */
-const INPUT_NAMES: Record<string, string> = {
-  domain: 'site ou domaine',
-  email: 'e-mail',
-  phone: 'téléphone',
-  iban: 'IBAN',
-  siren: 'SIREN',
-  siret: 'SIRET',
-};
 
 /** Advice the copy gives, shared by several signals. */
 const ADVICE = {
