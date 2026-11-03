@@ -1,13 +1,14 @@
 // The errors the API answers, in the RFC 9457 format: one per `code` of the
 // `Problem…` examples of its OpenAPI contract, each with the page that
 // explains it. Every claim of the guides below comes from arnakoff/api:
-// internal/adapter/httpapi (catalog.go, check.go, batch.go, auth.go,
-// handler.go, ratelimit.go, observe.go) and api/openapi.yaml. The build
+// internal/adapter/httpapi (catalog.go, check.go, batch.go, demo.go, auth.go,
+// handler.go, ratelimit.go, observe.go), internal/adapter/turnstile and
+// api/openapi.yaml. The build
 // fails when a code of the contract has no guide, a guide has no code, or a
 // `type` is not the page of its code. Plain TypeScript, so that the scripts
 // checking dist/ list the same pages as the build.
 import { parse } from 'yaml';
-import { API_ISSUES_URL, ERRORS_PATH, REFERENCE_PATH, SITE_URL } from './site.ts';
+import { API_ISSUES_URL, CHECKER_PATH, ERRORS_PATH, REFERENCE_PATH, SITE_URL } from './site.ts';
 
 /** When the API answers an error and what to do, as inline Markdown. */
 interface Guide {
@@ -35,7 +36,7 @@ const GUIDES: Record<string, Guide> = {
   invalid_parameter: {
     when: [
       'Le paramètre `type` de `GET /v1/check` a une valeur inconnue.',
-      "Le champ `type` d'un élément de `POST /v1/check/batch` a une valeur inconnue.",
+      "Le champ `type` d'un élément de `POST /v1/check/batch`, ou du corps de `POST /v1/demo/check`, a une valeur inconnue.",
     ],
     fix: "Donne à `type` l'une des valeurs `domain`, `email`, `phone`, `iban`, `siren` ou `siret`. Ou retire-le : l'API détecte alors le type de l'entrée.",
     item: true,
@@ -43,17 +44,17 @@ const GUIDES: Record<string, Guide> = {
   missing_parameter: {
     when: [
       '`GET /v1/check` est appelé sans paramètre `q`, ou avec un `q` vide.',
-      "Un élément de `POST /v1/check/batch` n'a pas de champ `q`, ou un `q` vide.",
+      "Un élément de `POST /v1/check/batch`, ou le corps de `POST /v1/demo/check`, n'a pas de champ `q`, ou un `q` vide.",
     ],
     fix: 'Envoie l\'entrée à vérifier dans `q`. Dans une URL, encode-la : avec curl, `--data-urlencode "q=…"`.',
     item: true,
   },
   invalid_body: {
     when: [
-      "Le corps de `POST /v1/check/batch` n'est pas un objet JSON, ou contient autre chose après lui.",
-      "Il n'a pas de liste `items`, ou cette liste est vide.",
+      "Le corps de `POST /v1/check/batch` ou de `POST /v1/demo/check` n'est pas un objet JSON, ou contient autre chose après lui.",
+      "Le corps de `POST /v1/check/batch` n'a pas de liste `items`, ou cette liste est vide.",
     ],
-    fix: 'Envoie un objet JSON avec une liste `items` d\'au moins un élément : `{"items": [{"q": "armen.ltd"}]}`.',
+    fix: 'Pour `POST /v1/check/batch`, envoie un objet JSON avec une liste `items` d\'au moins un élément : `{"items": [{"q": "armen.ltd"}]}`. Pour `POST /v1/demo/check`, un objet JSON avec `q` et `turnstile_token`.',
   },
   missing_api_key: {
     when: [
@@ -89,11 +90,14 @@ const GUIDES: Record<string, Guide> = {
   content_too_large: {
     when: [
       "Le corps de `POST /v1/check/batch` dépasse la taille autorisée, qui dépend du nombre maximal d'éléments d'un lot.",
+      'Le corps de `POST /v1/demo/check` dépasse 8 Kio.',
     ],
-    fix: 'Découpe le lot en plusieurs requêtes.',
+    fix: "Découpe le lot en plusieurs requêtes. Pour `POST /v1/demo/check`, envoie seulement l'entrée et le jeton anti-abus.",
   },
   unsupported_media_type: {
-    when: ["Le corps de `POST /v1/check/batch` n'est pas annoncé en `application/json`."],
+    when: [
+      "Le corps de `POST /v1/check/batch` ou de `POST /v1/demo/check` n'est pas annoncé en `application/json`.",
+    ],
     fix: "Ajoute l'en-tête `Content-Type: application/json` à la requête.",
   },
   invalid_input: {
@@ -113,7 +117,9 @@ const GUIDES: Record<string, Guide> = {
   too_many_requests: {
     when: [
       'Le quota est atteint : celui de ta clé pour `/v1/check` et `/v1/check/batch`, celui de ton adresse IP pour `/v1/sources` et `/v1/signals`.',
-      'La réponse porte les en-têtes `RateLimit`, `RateLimit-Policy` et `Retry-After`.',
+      'Trop de clés refusées sont venues de ton adresse IP : `/v1/check` et `/v1/check/batch` lui sont alors fermés un temps.',
+      '`POST /v1/demo/check` a deux quotas : celui de ton adresse IP et celui de tous les visiteurs ensemble. Seule une requête au jeton anti-abus accepté entame le second.',
+      'La réponse porte les en-têtes `RateLimit`, `RateLimit-Policy` et `Retry-After`. `RateLimit-Policy` nomme le quota atteint : `key`, `ip`, `auth`, `demo` ou `demo_global`.',
     ],
     fix: "Attends le nombre de secondes de l'en-tête `Retry-After` avant de réessayer.",
   },
@@ -127,6 +133,22 @@ const GUIDES: Record<string, Guide> = {
       "La clé ne peut pas être vérifiée pour le moment. L'API refuse alors la requête plutôt que de la servir sans contrôle.",
     ],
     fix: "Réessaie plus tard. Ta clé n'est pas en cause.",
+  },
+  challenge_failed: {
+    when: [
+      "Le corps de `POST /v1/demo/check` n'a pas de `turnstile_token`, ou un jeton vide ou de plus de 2048 caractères.",
+      "Cloudflare Turnstile refuse le jeton : il est invalide, a expiré (300 secondes) ou a déjà servi. Un jeton ne sert qu'une fois.",
+      "Le jeton n'a pas été obtenu sur le site d'Arnakoff.",
+    ],
+    fix: 'Demande un nouveau jeton au widget Turnstile du vérificateur, puis renvoie la requête. Pour vérifier sans widget, utilise `GET /v1/check` avec ta clé.',
+    link: { href: CHECKER_PATH, label: 'Vérificateur en ligne' },
+  },
+  challenge_unavailable: {
+    when: [
+      "Le jeton de `POST /v1/demo/check` ne peut pas être vérifié pour le moment : Cloudflare Turnstile n'a pas répondu, ou pas clairement. L'API refuse alors la requête plutôt que de la servir sans contrôle.",
+      "L'accès de démonstration n'est pas activé sur ce serveur.",
+    ],
+    fix: "Réessaie plus tard. Ton jeton n'est pas en cause.",
   },
   service_unavailable: {
     when: ["Le service n'est pas encore prêt à répondre."],
