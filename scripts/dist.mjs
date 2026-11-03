@@ -70,6 +70,9 @@ export const HASHES_PLACEHOLDER = '{inline-script-hashes}';
 /** Placeholder of `public/_headers` for the origin of the API. */
 export const API_ORIGIN_PLACEHOLDER = '{api-origin}';
 
+/** Placeholder of `public/_headers` for the CSP of the online checker. */
+export const CHECKER_CSP_PLACEHOLDER = '{checker-csp}';
+
 /**
  * Returns the CSP source of every inline script a page runs, such as
  * `'sha256-…'`. JSON-LD is data, not a script: the CSP does not apply to it.
@@ -83,14 +86,16 @@ export function inlineScriptHashes(html) {
 }
 
 /**
- * Returns the headers dist/_headers gives a URL path. Supports the rules the
+ * Returns the headers dist/_headers gives a URL path, as Cloudflare Pages
+ * does: the values of a header set by several matching rules are joined with
+ * a comma, and `! Name` drops what the rules above set. Supports the rules the
  * site uses: an exact path or a path ending in `*`.
  * @param {string} pathname
  * @returns {Record<string, string>}
  */
 export function headersFor(pathname) {
-  /** @type {Record<string, string>} */
-  const headers = {};
+  /** @type {Map<string, string>} */
+  const headers = new Map();
   let matches = false;
   for (const line of readFileSync(HEADERS_FILE, 'utf8').split('\n')) {
     if (line.trim() === '' || line.trimStart().startsWith('#')) continue;
@@ -98,11 +103,19 @@ export function headersFor(pathname) {
       const rule = line.trim();
       matches = rule.endsWith('*') ? pathname.startsWith(rule.slice(0, -1)) : pathname === rule;
     } else if (matches) {
+      const detached = /^\s*!\s+(.+)$/.exec(line)?.[1];
+      if (detached) {
+        headers.delete(detached.trim());
+        continue;
+      }
       const colon = line.indexOf(':');
-      headers[line.slice(0, colon).trim()] = line.slice(colon + 1).trim();
+      const name = line.slice(0, colon).trim();
+      const value = line.slice(colon + 1).trim();
+      const set = headers.get(name);
+      headers.set(name, set ? `${set}, ${value}` : value);
     }
   }
-  return headers;
+  return Object.fromEntries(headers);
 }
 
 /**

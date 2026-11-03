@@ -9,7 +9,8 @@
 // - no tracker: no request leaves the site, no cookie is set and browser
 //   storage holds nothing but interface state;
 // - the online checker, with the API's answers taken from the examples of the
-//   contract, shows each one readably and sends the input in the body only.
+//   contract, shows each one readably and sends the input in the body only,
+//   with the token of a stand-in for Cloudflare Turnstile.
 // Run with `npm test` after `npm run build`. Chromium comes from
 // `npx playwright install --only-shell chromium`.
 // Callbacks given to page.evaluate run in the browser.
@@ -18,7 +19,13 @@ import { readFileSync } from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
 import { chromium } from 'playwright';
 import { parse } from 'yaml';
-import { API_ORIGIN, CHECKER_PATH, DEMO_CHECK_URL } from '../src/lib/site.ts';
+import {
+  API_ORIGIN,
+  CHECKER_PATH,
+  DEMO_CHECK_URL,
+  TURNSTILE_ORIGIN,
+  TURNSTILE_SCRIPT_URL,
+} from '../src/lib/site.ts';
 import { DIST, PAGES, requireDist, serveDist } from './dist.mjs';
 import { checkTrackers, watchPage } from './trackers.mjs';
 
@@ -90,6 +97,35 @@ const CHECKER_CASES = [
   },
   { text: "L'API ne répond pas" },
 ];
+
+/** The token the stand-in for Turnstile gives. */
+const TURNSTILE_TOKEN = 'test-token';
+
+/**
+ * Stand-in for the script of Cloudflare Turnstile, so that no request leaves
+ * the machine: its widget gives a token at once, and a new one on each reset.
+ */
+const TURNSTILE_STUB = `let options;
+window.turnstile = {
+  render(container, given) {
+    options = given;
+    options.callback(${JSON.stringify(TURNSTILE_TOKEN)});
+    return 'stub';
+  },
+  reset() {
+    options.callback(${JSON.stringify(TURNSTILE_TOKEN)});
+  },
+};`;
+
+/**
+ * Serves the stand-in for Turnstile to `page`.
+ * @param {import('playwright').Page} page
+ */
+function stubTurnstile(page) {
+  return page.route(TURNSTILE_SCRIPT_URL, (route) =>
+    route.fulfill({ contentType: 'text/javascript', body: TURNSTILE_STUB }),
+  );
+}
 
 /** More tab stops than this on one page means focus never cycles back. */
 const MAX_TAB_STOPS = 200;
@@ -204,7 +240,8 @@ async function checkChecker(browser) {
     const where = `${CHECKER_PATH} checker ${example ?? 'unreachable'}`;
     const context = await browser.newContext();
     const page = await context.newPage();
-    watchPage(page, where, origin, errors, [API_ORIGIN]);
+    watchPage(page, where, origin, errors, [API_ORIGIN, TURNSTILE_ORIGIN]);
+    await stubTurnstile(page);
     /** @type {string[]} */
     const sent = [];
     await page.route(DEMO_CHECK_URL, async (route) => {
@@ -233,10 +270,6 @@ async function checkChecker(browser) {
       });
     });
     await page.goto(origin + CHECKER_PATH);
-    // Stands for the Turnstile widget (issue #28).
-    await page.$eval('#checker-token', (input) => {
-      input.value = 'test-token';
-    });
     await page.fill('#checker-q', 'armen.ltd');
     await page.press('#checker-q', 'Enter');
     try {
@@ -254,9 +287,13 @@ async function checkChecker(browser) {
       errors.push(`${where}: the input is in the page's URL`);
     }
     /** @type {unknown} */
-    const body = JSON.parse(sent[0] ?? '{}');
-    if (sent.length !== 1 || /** @type {{ q?: unknown }} */ (body).q !== 'armen.ltd') {
+    const parsed = JSON.parse(sent[0] ?? '{}');
+    const body = /** @type {{ q?: unknown, turnstile_token?: unknown }} */ (parsed);
+    if (sent.length !== 1 || body.q !== 'armen.ltd') {
       errors.push(`${where}: the input is not sent once in the request body`);
+    }
+    if (body.turnstile_token !== TURNSTILE_TOKEN) {
+      errors.push(`${where}: the Turnstile token is not sent`);
     }
     const results = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
     for (const violation of results.violations) {
@@ -279,7 +316,8 @@ try {
         const where = `${path} ${String(viewport.width)}px ${colorScheme}`;
         const context = await browser.newContext({ viewport, colorScheme });
         const page = await context.newPage();
-        watchPage(page, where, origin, errors);
+        watchPage(page, where, origin, errors, path === CHECKER_PATH ? [TURNSTILE_ORIGIN] : []);
+        await stubTurnstile(page);
         const url = origin + path;
         await page.goto(url);
 

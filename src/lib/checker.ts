@@ -3,7 +3,14 @@
 // schemas of api/openapi.yaml). The input travels in the request body, never
 // in a URL, and the request carries no cookie. Runs in the browser.
 import type { CalloutLevel } from './callout';
-import { DEMO_CHECK_URL, ERRORS_PATH, SITE_URL } from './site';
+import { parseTheme, type Theme } from './theme';
+import {
+  DEMO_CHECK_URL,
+  ERRORS_PATH,
+  SITE_URL,
+  TURNSTILE_SCRIPT_URL,
+  TURNSTILE_SITE_KEY,
+} from './site';
 
 /** Absolute address of the error pages, which starts the `type` of each Problem. */
 const ERRORS_URL = new URL(ERRORS_PATH, SITE_URL).href;
@@ -94,6 +101,69 @@ export async function demoCheck(q: string, token: string): Promise<CheckResult> 
     return { kind: 'unreachable' };
   }
   return isProblem(body) ? { kind: 'problem', problem: body } : { kind: 'unreachable' };
+}
+
+/** The part of Cloudflare Turnstile's explicit rendering API the checker uses. */
+interface Turnstile {
+  render(
+    container: HTMLElement,
+    options: {
+      sitekey: string;
+      callback: (token: string) => void;
+      'expired-callback': () => void;
+      'error-callback': () => void;
+      language: string;
+      theme: Theme;
+      size: 'flexible';
+    },
+  ): string | null | undefined;
+  reset(widgetId: string): void;
+}
+
+declare global {
+  interface Window {
+    turnstile?: Turnstile;
+  }
+}
+
+/**
+ * Loads Cloudflare Turnstile and renders its widget in `container`, in the
+ * page's theme. `onToken` receives each new token, and `''` when the current
+ * one expires or the widget fails. Returns what asks for a new token, once the
+ * current one is spent: the API accepts each token once.
+ */
+export function renderAntiAbuse(
+  container: HTMLElement,
+  onToken: (token: string) => void,
+): () => void {
+  let reset = () => undefined;
+  const script = document.createElement('script');
+  script.src = TURNSTILE_SCRIPT_URL;
+  script.addEventListener('load', () => {
+    const { turnstile } = window;
+    const id = turnstile?.render(container, {
+      sitekey: TURNSTILE_SITE_KEY,
+      callback: onToken,
+      'expired-callback': () => {
+        onToken('');
+      },
+      'error-callback': () => {
+        onToken('');
+      },
+      language: 'fr',
+      theme: parseTheme(document.documentElement.dataset.theme),
+      size: 'flexible',
+    });
+    if (turnstile && id) {
+      reset = () => {
+        turnstile.reset(id);
+      };
+    }
+  });
+  document.head.append(script);
+  return () => {
+    reset();
+  };
 }
 
 /** The request identifier of a Problem, to quote in a bug report. */
