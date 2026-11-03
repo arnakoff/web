@@ -10,7 +10,8 @@
 //   storage holds nothing but interface state;
 // - the online checker, with the API's answers taken from the examples of the
 //   contract, shows each one readably and sends the input in the body only,
-//   with the token of a stand-in for Cloudflare Turnstile.
+//   with the token of a stand-in for Cloudflare Turnstile; a domain alone gets
+//   a share link, and opening it checks the domain and leaves a bare URL.
 // Run with `npm test` after `npm run build`. Chromium comes from
 // `npx playwright install --only-shell chromium`.
 // Callbacks given to page.evaluate run in the browser.
@@ -23,6 +24,7 @@ import {
   API_ORIGIN,
   CHECKER_PATH,
   DEMO_CHECK_URL,
+  SITE_URL,
   TURNSTILE_ORIGIN,
   TURNSTILE_SCRIPT_URL,
 } from '../src/lib/site.ts';
@@ -72,9 +74,14 @@ const SIGNAL_SOURCE_URL = /** @type {{ signals: { source_url: string }[] }} */ (
   /** @type {unknown} */ (EXAMPLES.ReportBlacklisted.value)
 ).signals[0].source_url;
 
+/** The share link of the checked domain, armen.ltd: its host in the fragment, nothing else. */
+const SHARE_URL = `${SITE_URL}${CHECKER_PATH}#site=armen.ltd`;
+
 /**
  * Answers the checker is given, and a text and a link it must then show:
  * each `example` is a contract example; without one, the request fails.
+ * `share` is true when the answer is a domain's, the only one with a share
+ * link; `opened` checks armen.ltd by opening that link instead of typing it.
  */
 const CHECKER_CASES = [
   {
@@ -82,6 +89,15 @@ const CHECKER_CASES = [
     status: 200,
     text: 'Figure sur la liste noire',
     link: SIGNAL_SOURCE_URL,
+    share: true,
+  },
+  {
+    example: 'ReportBlacklisted',
+    status: 200,
+    text: 'Figure sur la liste noire',
+    link: SIGNAL_SOURCE_URL,
+    share: true,
+    opened: true,
   },
   {
     example: 'ReportNoSignal',
@@ -236,8 +252,8 @@ async function checkSearch(browser) {
  * @param {import('playwright').Browser} browser
  */
 async function checkChecker(browser) {
-  for (const { example, status, text, link } of CHECKER_CASES) {
-    const where = `${CHECKER_PATH} checker ${example ?? 'unreachable'}`;
+  for (const { example, status, text, link, share = false, opened = false } of CHECKER_CASES) {
+    const where = `${CHECKER_PATH} checker ${example ?? 'unreachable'}${opened ? ' from its share link' : ''}`;
     const context = await browser.newContext();
     const page = await context.newPage();
     watchPage(page, where, origin, errors, [API_ORIGIN, TURNSTILE_ORIGIN]);
@@ -269,9 +285,13 @@ async function checkChecker(browser) {
         body: JSON.stringify(EXAMPLES[example]?.value),
       });
     });
-    await page.goto(origin + CHECKER_PATH);
-    await page.fill('#checker-q', 'armen.ltd');
-    await page.press('#checker-q', 'Enter');
+    if (opened) {
+      await page.goto(SHARE_URL.replace(SITE_URL, origin));
+    } else {
+      await page.goto(origin + CHECKER_PATH);
+      await page.fill('#checker-q', 'armen.ltd');
+      await page.press('#checker-q', 'Enter');
+    }
     try {
       await page.getByText(text).waitFor({ timeout: 5_000 });
     } catch {
@@ -285,6 +305,11 @@ async function checkChecker(browser) {
     }
     if (new URL(page.url()).search !== '' || page.url().includes('armen')) {
       errors.push(`${where}: the input is in the page's URL`);
+    }
+    const shareLink = page.locator('#checker-output .share a');
+    const shared = (await shareLink.count()) > 0 ? await shareLink.getAttribute('href') : null;
+    if (share ? shared !== SHARE_URL : shared !== null) {
+      errors.push(`${where}: share link ${String(shared)}, expected ${share ? SHARE_URL : 'none'}`);
     }
     /** @type {unknown} */
     const parsed = JSON.parse(sent[0] ?? '{}');
