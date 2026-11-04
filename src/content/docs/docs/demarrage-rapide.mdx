@@ -10,7 +10,7 @@ description: Ta première vérification avec l'API Arnakoff, en curl, JavaScript
 ---
 
 import Callout from '../../../components/Callout.astro';
-import { REFERENCE_PATH, SIGNALS_PATH } from '../../../lib/site';
+import { AUTH_PATH, REFERENCE_PATH, SIGNALS_PATH } from '../../../lib/site';
 
 <Callout level="attention" title="l’API n’est pas encore en service">
   <p>
@@ -26,7 +26,7 @@ Il te faut deux choses :
 - l'adresse de l'API, dans la variable `ARNAKOFF_API_URL` ;
 - une clé API, dans la variable `ARNAKOFF_API_KEY`.
 
-Une clé commence par `ark_live_` (production) ou `ark_test_` (préproduction). Elle n'est affichée qu'une fois, à sa création : garde-la hors de ton code et de ton dépôt.
+Une clé commence par `ark_live_` (production) ou `ark_test_` (préproduction). Elle n'est affichée qu'une fois, à sa création : garde-la hors de ton code et de ton dépôt. Pour l'obtenir, la faire tourner et connaître tes quotas, lis <a href={AUTH_PATH}>Authentification et quotas</a>.
 
 ```sh
 export ARNAKOFF_API_URL="<adresse de l'API>"

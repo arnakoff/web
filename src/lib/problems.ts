@@ -8,7 +8,14 @@
 // `type` is not the page of its code. Plain TypeScript, so that the scripts
 // checking dist/ list the same pages as the build.
 import { parse } from 'yaml';
-import { API_ISSUES_URL, CHECKER_PATH, ERRORS_PATH, REFERENCE_PATH, SITE_URL } from './site.ts';
+import {
+  API_ISSUES_URL,
+  AUTH_PATH,
+  CHECKER_PATH,
+  ERRORS_PATH,
+  REFERENCE_PATH,
+  SITE_URL,
+} from './site.ts';
 
 /** When the API answers an error and what to do, as inline Markdown. */
 interface Guide {
@@ -62,6 +69,7 @@ const GUIDES: Record<string, Guide> = {
       'La réponse porte l\'en-tête `WWW-Authenticate: Bearer realm="arnakoff"`.',
     ],
     fix: "Ajoute l'en-tête `Authorization: Bearer <ta clé>` à la requête.",
+    link: { href: AUTH_PATH, label: 'Authentification et quotas' },
   },
   invalid_api_key: {
     when: [
@@ -70,6 +78,7 @@ const GUIDES: Record<string, Guide> = {
       'La réponse porte l\'en-tête `WWW-Authenticate: Bearer realm="arnakoff", error="invalid_token"`.',
     ],
     fix: 'Vérifie que tu envoies la clé entière, dans un seul en-tête `Authorization`. Une clé révoquée ne sert plus : utilises-en une autre.',
+    link: { href: AUTH_PATH, label: 'Authentification et quotas' },
   },
   not_found: {
     when: [
@@ -122,6 +131,7 @@ const GUIDES: Record<string, Guide> = {
       'La réponse porte les en-têtes `RateLimit`, `RateLimit-Policy` et `Retry-After`. `RateLimit-Policy` nomme le quota atteint : `key`, `ip`, `auth`, `demo` ou `demo_global`.',
     ],
     fix: "Attends le nombre de secondes de l'en-tête `Retry-After` avant de réessayer.",
+    link: { href: AUTH_PATH, label: 'Authentification et quotas' },
   },
   internal_error: {
     when: ['Le serveur a rencontré une erreur imprévue en traitant la requête.'],

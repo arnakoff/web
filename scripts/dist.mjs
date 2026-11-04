@@ -8,7 +8,7 @@ import { gzipSync } from 'node:zlib';
 import { extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { problemPath, problemsOf } from '../src/lib/problems.ts';
-import { ERRORS_PATH, REFERENCE_PATH } from '../src/lib/site.ts';
+import { AUTH_PATH, ERRORS_PATH, REFERENCE_PATH } from '../src/lib/site.ts';
 
 export const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 
@@ -26,6 +26,7 @@ export const PAGES = [
   '/verifier/',
   '/docs/',
   '/docs/demarrage-rapide/',
+  AUTH_PATH,
   '/docs/versions/',
   ERRORS_PATH,
   ...PROBLEMS.map(({ code }) => problemPath(code)),

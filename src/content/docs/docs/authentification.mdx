@@ -1,0 +1,112 @@
+---
+# Every claim comes from arnakoff/api: api/openapi.yaml (the apiKey scheme,
+# POST /v1/keys/request and /v1/keys/redeem, the RateLimit, RateLimit-Policy
+# and Retry-After headers, the Unauthorized and TooManyRequests responses),
+# .env.example (ARNAKOFF_RATE_LIMIT_* defaults, which deploy/tofu does not
+# override), internal/adapter/httpapi/ratelimit.go (header values) and
+# docs/performance.md (immediate revocation, #246). The headers and the 429
+# below were captured from production on 04/11/2026. Getting a key needs the
+# site page of arnakoff/web#42, not online yet.
+title: Authentification et quotas
+description: Obtenir une clé API Arnakoff, l'envoyer, la faire tourner, et lire les quotas avec les en-têtes RateLimit et la réponse 429.
+---
+
+import Callout from '../../../components/Callout.astro';
+import { problemPath } from '../../../lib/problems';
+import { REFERENCE_PATH } from '../../../lib/site';
+
+<Callout level="attention" title="la page pour obtenir une clé n’est pas encore en ligne">
+  <p>
+    Le parcours ci-dessous est celui de l'API. Le lien vers la page du site sera ajouté ici dès son
+    ouverture.
+  </p>
+</Callout>
+
+## Obtenir une clé
+
+La clé est gratuite. Une adresse e-mail a une seule clé active.
+
+1. Sur la page du site, tu donnes ton adresse e-mail.
+2. Tu reçois un lien de connexion. Il ne sert qu'une fois et expire après 15 minutes.
+3. La page que le lien ouvre affiche ta clé, une seule fois : le serveur n'en garde qu'une empreinte. Copie-la tout de suite.
+
+La réponse est la même que l'adresse ait déjà une clé ou non. Au-delà de 3 liens par heure pour une même adresse, la demande est acceptée sans nouvel envoi.
+
+## Envoyer la clé
+
+Les routes de vérification, `GET /v1/check` et `POST /v1/check/batch`, demandent la clé dans l'en-tête `Authorization`, avec le schéma `Bearer` (RFC 6750) :
+
+```http
+GET /v1/check?q=armen.ltd HTTP/1.1
+Authorization: Bearer ark_live_…
+```
+
+Les routes de référence, `GET /v1/sources` et `GET /v1/signals`, sont publiques : elles ne demandent pas de clé.
+
+Une clé fait 45 caractères : `ark_live_`, 30 caractères aléatoires et une somme de contrôle de 6 caractères. Les outils de détection de secrets la reconnaissent à cette forme. Garde-la côté serveur, dans une variable d'environnement : jamais dans ton dépôt, dans une URL ou dans du code exécuté par un navigateur.
+
+Quand la clé est refusée, la réponse est une erreur `401` :
+
+- <a href={problemPath('missing_api_key')}>`missing_api_key`</a> : pas d'en-tête `Authorization` au
+  schéma `Bearer` ;
+- <a href={problemPath('invalid_api_key')}>`invalid_api_key`</a> : clé mal formée, inconnue ou
+  révoquée.
+
+Si l'API ne peut pas vérifier la clé pour le moment, elle répond <a href={problemPath('authentication_unavailable')}>`authentication_unavailable`</a> (`503`) plutôt que de servir la requête sans contrôle. Ta clé n'est pas en cause : réessaie plus tard.
+
+## Faire tourner la clé
+
+Pour changer de clé, par exemple si elle a fuité, demande un nouveau lien avec la même adresse. Quand la page du lien te donne la nouvelle clé, l'ancienne est révoquée aussitôt : il n'y a pas de période où les deux marchent. Remplace la clé dans ta configuration dès que tu l'as, les requêtes qui portent l'ancienne reçoivent `invalid_api_key`.
+
+## Quotas
+
+Chaque quota a un nom, sa politique, que les en-têtes de réponse indiquent. Le quota entier peut être dépensé d'un coup, puis il revient au même rythme sur la minute.
+
+- `key` : 60 requêtes par minute et par clé, sur `GET /v1/check` et `POST /v1/check/batch`.
+- `ip` : 30 requêtes par minute et par adresse du client (préfixe /64 en IPv6), sur `GET /v1/sources` et `GET /v1/signals`.
+- `auth` : 30 clés refusées par minute et par adresse du client, sur `GET /v1/check` et `POST /v1/check/batch`.
+
+Un lot de `POST /v1/check/batch` compte pour une requête. Quand le quota `auth` est dépensé, les clés envoyées depuis cette adresse ne sont plus vérifiées : la réponse est `429`, même pour une clé valide, jusqu'à ce qu'il revienne.
+
+Ces valeurs sont celles du 04/11/2026. Les en-têtes de chaque réponse donnent celles qui s'appliquent.
+
+## Lire les en-têtes
+
+Une réponse comptée dans un quota porte deux en-têtes (draft-ietf-httpapi-ratelimit-headers-11). Relevés en production sur `GET /v1/sources` :
+
+```http
+RateLimit-Policy: "ip";q=30;w=60
+RateLimit: "ip";r=29;t=2
+```
+
+- `RateLimit-Policy` : le nom de la politique, `q` requêtes permises par fenêtre de `w` secondes.
+- `RateLimit` : `r` requêtes encore permises maintenant ; `t` secondes avant qu'une requête de plus soit rendue, `0` quand le quota est entier.
+
+Ralentis quand `r` approche de `0`, plutôt que d'attendre la réponse `429`.
+
+## La réponse 429
+
+Au-delà du quota, l'API répond <a href={problemPath('too_many_requests')}>`too_many_requests`</a>, avec l'en-tête `Retry-After` en secondes. `RateLimit-Policy` nomme le quota atteint. Relevé en production le 04/11/2026 :
+
+```http
+HTTP/1.1 429 Too Many Requests
+Content-Type: application/problem+json
+RateLimit: "ip";r=0;t=1
+RateLimit-Policy: "ip";q=30;w=60
+Retry-After: 1
+```
+
+```json
+{
+  "type": "https://arnakoff.com/docs/erreurs/too_many_requests",
+  "title": "Trop de requêtes",
+  "status": 429,
+  "detail": "Le quota de requêtes est atteint. Réessaie après le délai de l'en-tête Retry-After.",
+  "instance": "tag:arnakoff.com,2026:request:afe296bb-8634-4919-bb51-cd6413a58253",
+  "code": "too_many_requests"
+}
+```
+
+Attends le nombre de secondes de `Retry-After` avant de renvoyer la requête. Pour `auth`, corrige d'abord la clé refusée : chaque nouveau refus dépense encore le quota.
+
+Les routes, leurs en-têtes et leurs erreurs sont dans la <a href={REFERENCE_PATH}>référence de l'API</a>.

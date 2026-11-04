@@ -37,6 +37,7 @@ export default defineConfig({
       sidebar: [
         { slug: 'docs' },
         { slug: 'docs/demarrage-rapide' },
+        { slug: 'docs/authentification' },
         { slug: 'docs/versions' },
         // Plain Astro pages generated from the contract's errors (src/pages/docs/erreurs/).
         { label: 'Erreurs', link: ERRORS_PATH },
