@@ -35,10 +35,13 @@ export const PAGES = [
   `${REFERENCE_PATH}operations/check/`,
   `${REFERENCE_PATH}operations/checkbatch/`,
   `${REFERENCE_PATH}operations/democheck/`,
+  `${REFERENCE_PATH}operations/requestkey/`,
+  `${REFERENCE_PATH}operations/redeemkey/`,
   `${REFERENCE_PATH}operations/listsources/`,
   `${REFERENCE_PATH}operations/listsignals/`,
   `${REFERENCE_PATH}operations/tags/vérification/`,
   `${REFERENCE_PATH}operations/tags/référence/`,
+  `${REFERENCE_PATH}operations/tags/clés/`,
   '/404',
 ];
 
