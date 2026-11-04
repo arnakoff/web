@@ -66,7 +66,9 @@ Chaque quota a un nom, sa politique, que les en-têtes de réponse indiquent. Le
 - `ip` : 30 requêtes par minute et par adresse du client (préfixe /64 en IPv6), sur `GET /v1/sources` et `GET /v1/signals`.
 - `auth` : 30 clés refusées par minute et par adresse du client, sur `GET /v1/check` et `POST /v1/check/batch`.
 
-Un lot de `POST /v1/check/batch` compte pour une requête. Quand le quota `auth` est dépensé, les clés envoyées depuis cette adresse ne sont plus vérifiées : la réponse est `429`, même pour une clé valide, jusqu'à ce qu'il revienne.
+Chaque élément d'un lot `POST /v1/check/batch` compte pour une requête du quota `key`, qu'il soit valide ou non. Avec 10 requêtes restantes, un lot de 4 éléments en dépense 4 et laisse `r=6` dans `RateLimit`. S'il reste moins de requêtes que d'éléments, le lot entier est refusé en `429` et ne dépense rien : un lot de 7 éléments est alors refusé, un lot de 6 passe.
+
+Quand le quota `auth` est dépensé, les clés envoyées depuis cette adresse ne sont plus vérifiées : la réponse est `429`, même pour une clé valide, jusqu'à ce qu'il revienne.
 
 Ces valeurs sont celles du 04/11/2026. Les en-têtes de chaque réponse donnent celles qui s'appliquent.
 
@@ -107,6 +109,6 @@ Retry-After: 1
 }
 ```
 
-Attends le nombre de secondes de `Retry-After` avant de renvoyer la requête. Pour `auth`, corrige d'abord la clé refusée : chaque nouveau refus dépense encore le quota.
+Attends le nombre de secondes de `Retry-After` avant de renvoyer la requête. Pour un lot, `Retry-After` dit quand toutes ses requêtes seront revenues : il peut dépasser le `t` de `RateLimit`, qui ne compte qu'une requête. Tu peux aussi envoyer un lot plus petit. Pour `auth`, corrige d'abord la clé refusée : chaque nouveau refus dépense encore le quota.
 
 Les routes, leurs en-têtes et leurs erreurs sont dans la <a href={REFERENCE_PATH}>référence de l'API</a>.
