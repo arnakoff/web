@@ -28,6 +28,9 @@ export const REFERENCE_PATH = `/${REFERENCE_BASE}/`;
  */
 export const ERRORS_PATH = '/docs/erreurs/';
 
+/** Path of the docs page on getting, sending and rotating a key, and on quotas. */
+export const AUTH_PATH = '/docs/authentification/';
+
 /** Absolute URL of the API documentation. */
 export const DOCS_URL = new URL(DOCS_PATH, SITE_URL).href;
 
