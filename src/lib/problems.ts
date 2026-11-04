@@ -134,6 +134,21 @@ const GUIDES: Record<string, Guide> = {
     fix: "Attends le nombre de secondes de l'en-tête `Retry-After` avant de réessayer. Pour un lot, tu peux aussi envoyer moins d'éléments.",
     link: { href: AUTH_PATH, label: 'Authentification et quotas' },
   },
+  invalid_login_link: {
+    when: [
+      "Le jeton envoyé à `POST /v1/keys/redeem` ne correspond à aucun lien de connexion utilisable : il est inconnu, il a expiré (un lien vaut 15 minutes) ou il a déjà servi (un lien ne sert qu'une fois).",
+      "La réponse est la même dans les trois cas : elle ne dit pas lequel s'applique.",
+    ],
+    fix: 'Demande un nouveau lien avec la même adresse et ouvre-le dans les 15 minutes.',
+    link: { href: AUTH_PATH, label: 'Authentification et quotas' },
+  },
+  key_request_unavailable: {
+    when: [
+      "La demande d'un lien (`POST /v1/keys/request`) ou l'échange d'un lien contre une clé (`POST /v1/keys/redeem`) ne peut pas être traité pour le moment : le service n'est pas configuré, le courriel n'a pas pu partir ou la clé n'a pas pu être enregistrée.",
+    ],
+    fix: "Réessaie plus tard. Si l'échange d'un lien a échoué, demande un nouveau lien : celui-ci a pu être consommé.",
+    link: { href: AUTH_PATH, label: 'Authentification et quotas' },
+  },
   internal_error: {
     when: ['Le serveur a rencontré une erreur imprévue en traitant la requête.'],
     fix: "Réessaie plus tard. Si l'erreur se répète, signale-la en citant le champ `instance` de la réponse.",
