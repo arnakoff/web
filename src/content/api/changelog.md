@@ -1,5 +1,69 @@
 # Changelog
 
+## [0.55.0](https://github.com/arnakoff/api/compare/v0.54.0...v0.55.0) (2026-11-04)
+
+
+### Features
+
+* **mcp:** describe the remote server for the official mcp registry ([#275](https://github.com/arnakoff/api/issues/275)) ([3d6b303](https://github.com/arnakoff/api/commit/3d6b303771763c2f2dd8b26dfba93659ce3d6c4a))
+
+## [0.54.0](https://github.com/arnakoff/api/compare/v0.53.1...v0.54.0) (2026-11-04)
+
+
+### Features
+
+* **ci:** alert on sync failures and probe production from outside ([#271](https://github.com/arnakoff/api/issues/271)) ([9552f53](https://github.com/arnakoff/api/commit/9552f532c7bce9d596119d7c9a00ef4a973406b0)), closes [#72](https://github.com/arnakoff/api/issues/72)
+
+
+### Bug Fixes
+
+* **ci:** keep the api.arnakoff.com domain when an apply omits api_hostname ([#274](https://github.com/arnakoff/api/issues/274)) ([9a37bd8](https://github.com/arnakoff/api/commit/9a37bd889751efa2503b6db76b853bc73dd421b0)), closes [#273](https://github.com/arnakoff/api/issues/273)
+
+## [0.53.1](https://github.com/arnakoff/api/compare/v0.53.0...v0.53.1) (2026-11-04)
+
+
+### Bug Fixes
+
+* **ci:** let the admin role connect to the arnakoff database ([#262](https://github.com/arnakoff/api/issues/262)) ([d044bed](https://github.com/arnakoff/api/commit/d044bede49ea18642fcbc620072a851897b2bbf9)), closes [#261](https://github.com/arnakoff/api/issues/261)
+* **ci:** let the deploy workflow create the sync job's secret versions ([#265](https://github.com/arnakoff/api/issues/265)) ([7807f42](https://github.com/arnakoff/api/commit/7807f426a63117f7f394d9570eb5481162f8fa3e)), closes [#264](https://github.com/arnakoff/api/issues/264)
+
+## [0.53.0](https://github.com/arnakoff/api/compare/v0.52.0...v0.53.0) (2026-11-04)
+
+
+### Features
+
+* **ci:** apply the migrations from the private network ([#260](https://github.com/arnakoff/api/issues/260)) ([4ea3086](https://github.com/arnakoff/api/commit/4ea30861afb8b4a907286da127d9cfff7f36a961)), closes [#259](https://github.com/arnakoff/api/issues/259)
+* **ci:** deploy signed images to scaleway, infrastructure in opentofu ([#251](https://github.com/arnakoff/api/issues/251)) ([d8489fc](https://github.com/arnakoff/api/commit/d8489fc24d08759e96d9e2778356e03579d4d4bb)), closes [#71](https://github.com/arnakoff/api/issues/71)
+
+
+### Bug Fixes
+
+* **ci:** give scw and the database url outputs they can use ([#258](https://github.com/arnakoff/api/issues/258)) ([0960e83](https://github.com/arnakoff/api/commit/0960e83abdd689312b3af23e65bebbf5b4b14f1a)), closes [#257](https://github.com/arnakoff/api/issues/257)
+* **ci:** let the first production apply and deploy go through ([#256](https://github.com/arnakoff/api/issues/256)) ([a40e823](https://github.com/arnakoff/api/commit/a40e8230289d6fa4447242dea0d257e18e430460)), closes [#255](https://github.com/arnakoff/api/issues/255)
+
+## [0.52.0](https://github.com/arnakoff/api/compare/v0.51.0...v0.52.0) (2026-11-04)
+
+
+### Features
+
+* **httpapi:** issue free api keys by email login link ([#246](https://github.com/arnakoff/api/issues/246)) ([b46d0af](https://github.com/arnakoff/api/commit/b46d0af9fe601f1f3ead7d95b33cc1cc2ef0e46b)), closes [#59](https://github.com/arnakoff/api/issues/59)
+* **httpapi:** read the client address from a field the platform overwrites ([#248](https://github.com/arnakoff/api/issues/248)) ([0b83973](https://github.com/arnakoff/api/commit/0b83973ca8f21bc736d5f1c5e41142426683c87c)), closes [#247](https://github.com/arnakoff/api/issues/247)
+* **store:** verify the database against a certificate authority given in pem ([#250](https://github.com/arnakoff/api/issues/250)) ([62602c5](https://github.com/arnakoff/api/commit/62602c54ac80537ec2d9ae3d414a216219da6176)), closes [#249](https://github.com/arnakoff/api/issues/249)
+
+## [0.51.0](https://github.com/arnakoff/api/compare/v0.50.0...v0.51.0) (2026-11-03)
+
+
+### Features
+
+* **app:** purge api keys revoked more than a year ago ([#243](https://github.com/arnakoff/api/issues/243)) ([309e73f](https://github.com/arnakoff/api/commit/309e73f85952481c44c5da4969f457947cde468c)), closes [#73](https://github.com/arnakoff/api/issues/73)
+
+## [0.50.0](https://github.com/arnakoff/api/compare/v0.49.0...v0.50.0) (2026-11-03)
+
+
+### Features
+
+* **sync:** store snapshots in scaleway object storage in production ([#241](https://github.com/arnakoff/api/issues/241)) ([b336f81](https://github.com/arnakoff/api/commit/b336f81d86310458e35dd83ee8bb7676107f37ed)), closes [#236](https://github.com/arnakoff/api/issues/236)
+
 ## [0.49.0](https://github.com/arnakoff/api/compare/v0.48.0...v0.49.0) (2026-11-03)
 
 
