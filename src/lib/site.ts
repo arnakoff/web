@@ -31,6 +31,9 @@ export const ERRORS_PATH = '/docs/erreurs/';
 /** Path of the docs page on getting, sending and rotating a key, and on quotas. */
 export const AUTH_PATH = '/docs/authentification/';
 
+/** Path of the docs page on the MCP server, for AI assistants. */
+export const MCP_PATH = '/docs/mcp/';
+
 /** Absolute URL of the API documentation. */
 export const DOCS_URL = new URL(DOCS_PATH, SITE_URL).href;
 
@@ -46,6 +49,14 @@ export const API_ORIGIN = new URL(API_URL).origin;
 
 /** Keyless check of the online checker (`POST /v1/demo/check`). */
 export const DEMO_CHECK_URL = `${API_URL}/demo/check`;
+
+/**
+ * Remote MCP endpoint (`POST /mcp`, outside `/v1`), and the entry of the
+ * server in the official MCP registry (`server.json` of `arnakoff/api`).
+ */
+export const MCP_URL = `${API_ORIGIN}/mcp`;
+export const MCP_REGISTRY_URL =
+  'https://registry.modelcontextprotocol.io/v0/servers?search=com.arnakoff/api';
 
 /**
  * Cloudflare Turnstile, the anti-abuse check of the online checker: its script,
@@ -83,6 +94,7 @@ export const STANDARD_URLS = {
   problemDetails: 'https://www.rfc-editor.org/rfc/rfc9457',
   deprecation: 'https://www.rfc-editor.org/rfc/rfc9745',
   sunset: 'https://www.rfc-editor.org/rfc/rfc8594',
+  mcp: 'https://modelcontextprotocol.io',
 } as const;
 
 /** Official services for a scam victim, each checked on its own site on 29/10/2026. */
