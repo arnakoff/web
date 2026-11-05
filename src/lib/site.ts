@@ -39,8 +39,8 @@ export const DOCS_URL = new URL(DOCS_PATH, SITE_URL).href;
 
 /**
  * Base URL of the public API, versioned by path (`/v1`, see `arnakoff/api`
- * docs/standards.md). The host is not published yet: confirm it before any
- * page displays or calls it.
+ * docs/standards.md). Its origin is the `servers` of the API contract, which
+ * the request examples of the reference call (checked by `npm test`).
  */
 export const API_URL = 'https://api.arnakoff.com/v1';
 

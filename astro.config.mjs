@@ -24,9 +24,6 @@ export default defineConfig({
             base: REFERENCE_BASE,
             schema: './src/content/api/openapi.yaml',
             sidebar: { label: "Référence de l'API", collapsed: false },
-            // The contract declares no `servers`: generated request snippets
-            // would call https://example.com. Enable them once it does.
-            snippets: { operation: false },
           },
         ]),
       ],

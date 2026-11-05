@@ -4,11 +4,13 @@
 // every error `type` of the API contract is a built page, search engines
 // get robots.txt, a sitemap of the pages and structured data,
 // dist/_headers gives every page the security headers and a CSP that
-// allows its inline scripts, and every English label of the generated API
-// reference carries `lang="en"`.
+// allows its inline scripts, every English label of the generated API
+// reference carries `lang="en"`, and its request examples call the host of
+// the contract, the API_URL of src/lib/site.ts.
 // Run with `npm test` after `npm run build`.
 import { existsSync, readFileSync } from 'node:fs';
 import { relative, sep } from 'node:path';
+import { parse } from 'yaml';
 import {
   FAVICON_SVG,
   ICONS,
@@ -19,10 +21,18 @@ import {
 } from '../src/lib/meta.ts';
 import openapiPackage from 'starlight-openapi/package.json' with { type: 'json' };
 import { LABELS_VERSION, OVERVIEW, unmarkedEnglishLabels } from '../src/lib/reference.ts';
-import { CHECKER_PATH, REFERENCE_PATH, SITE_URL, TURNSTILE_ORIGIN } from '../src/lib/site.ts';
+import {
+  API_ORIGIN,
+  API_URL,
+  CHECKER_PATH,
+  REFERENCE_PATH,
+  SITE_URL,
+  TURNSTILE_ORIGIN,
+} from '../src/lib/site.ts';
 import {
   API_ORIGIN_PLACEHOLDER,
   CHECKER_CSP_PLACEHOLDER,
+  CONTRACT,
   DIST,
   HASHES_PLACEHOLDER,
   HEADERS_FILE,
@@ -177,6 +187,18 @@ if (openapiPackage.version !== LABELS_VERSION) {
   );
 }
 
+// The request examples of the reference call the server of the contract,
+// whose paths carry the version: it is the host the site gives as API_URL.
+/** @type {unknown} */
+const contract = parse(CONTRACT);
+const servers = /** @type {{ servers?: { url?: string }[] }} */ (contract).servers ?? [];
+if (servers.length !== 1 || servers[0]?.url !== API_ORIGIN) {
+  fail(
+    'src/content/api/openapi.yaml',
+    `servers is ${JSON.stringify(servers.map(({ url }) => url))}, not [${API_ORIGIN}] as src/lib/site.ts says`,
+  );
+}
+
 for (const file of htmlFiles(DIST)) {
   const name = relative(DIST, file).split(sep).join('/');
   const html = readFileSync(file, 'utf8');
@@ -248,6 +270,9 @@ for (const file of htmlFiles(DIST)) {
   // is translated on every page, as the sidebar links to it.
   if (pageUrl.pathname.startsWith(REFERENCE_PATH)) {
     for (const label of unmarkedEnglishLabels(html)) fail(name, `"${label}" lacks lang="en"`);
+    if (html.includes('class="sl-openapi-snippets') && !html.includes(`${API_URL}/`)) {
+      fail(name, `the request examples do not call ${API_URL}`);
+    }
   }
   if (new RegExp(`>\\s*${OVERVIEW}\\s*<`).test(html)) fail(name, `"${OVERVIEW}" is not translated`);
 
@@ -294,5 +319,5 @@ if (errors.length > 0) {
   process.exit(1);
 }
 console.log(
-  `dist/ OK: ${String(PAGES.length)} expected pages, ${String(IMAGES.length + 1)} icons and images, internal links, metadata, English labels, robots.txt, sitemap, JSON-LD and security headers checked.`,
+  `dist/ OK: ${String(PAGES.length)} expected pages, ${String(IMAGES.length + 1)} icons and images, internal links, metadata, English labels, request examples, robots.txt, sitemap, JSON-LD and security headers checked.`,
 );
