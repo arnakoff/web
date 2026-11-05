@@ -1,5 +1,78 @@
 # Changelog
 
+## [0.60.1](https://github.com/arnakoff/api/compare/v0.60.0...v0.60.1) (2026-11-05)
+
+
+### Bug Fixes
+
+* **ci:** send the login links through scaleway transactional email ([#322](https://github.com/arnakoff/api/issues/322)) ([b4a3f9a](https://github.com/arnakoff/api/commit/b4a3f9a5582b37622544effd14ef85388272b256)), closes [#295](https://github.com/arnakoff/api/issues/295)
+
+## [0.60.0](https://github.com/arnakoff/api/compare/v0.59.1...v0.60.0) (2026-11-05)
+
+
+### Features
+
+* **app:** erase an account on request ([#319](https://github.com/arnakoff/api/issues/319)) ([b3ee3f0](https://github.com/arnakoff/api/commit/b3ee3f09f4833bab1d7126744372513c80bd9d74)), closes [#304](https://github.com/arnakoff/api/issues/304)
+
+## [0.59.1](https://github.com/arnakoff/api/compare/v0.59.0...v0.59.1) (2026-11-05)
+
+
+### Bug Fixes
+
+* **registry:** send the organization when the rotation job lists keys ([#316](https://github.com/arnakoff/api/issues/316)) ([0990fa5](https://github.com/arnakoff/api/commit/0990fa5fba7a8ade963ad0bd3227f73f46d7bcf2)), closes [#308](https://github.com/arnakoff/api/issues/308)
+
+## [0.59.0](https://github.com/arnakoff/api/compare/v0.58.0...v0.59.0) (2026-11-05)
+
+
+### Features
+
+* **app:** rotate the scaleway keys of the buckets, the ci and the rotator itself ([#311](https://github.com/arnakoff/api/issues/311)) ([ec976ae](https://github.com/arnakoff/api/commit/ec976aeed1d1abd1d39b79a00a799651af8502ef)), closes [#307](https://github.com/arnakoff/api/issues/307)
+* **ci:** run the key rotation job and stop deploying the bucket keys ([#314](https://github.com/arnakoff/api/issues/314)) ([3b1bd7b](https://github.com/arnakoff/api/commit/3b1bd7bc83bbfd12dc6791aa1768ab1e77df4023))
+
+
+### Bug Fixes
+
+* **app:** rotate a key close to its expiry, and sync before api ([#315](https://github.com/arnakoff/api/issues/315)) ([25113f0](https://github.com/arnakoff/api/commit/25113f06eafedc59eef111e3a98f70cb0d05f19c)), closes [#308](https://github.com/arnakoff/api/issues/308)
+
+## [0.58.0](https://github.com/arnakoff/api/compare/v0.57.0...v0.58.0) (2026-11-05)
+
+
+### Features
+
+* **app:** restore the api keys in production from their amazon s3 copy ([#301](https://github.com/arnakoff/api/issues/301)) ([d593399](https://github.com/arnakoff/api/commit/d5933997902985824a2d67ac485702dea453bfaf)), closes [#297](https://github.com/arnakoff/api/issues/297)
+* **ci:** alert on a 5xx rate of the api and on a failed backup ([#299](https://github.com/arnakoff/api/issues/299)) ([9ffb898](https://github.com/arnakoff/api/commit/9ffb898649797f310b58554ab5572b640f1f4b8b)), closes [#270](https://github.com/arnakoff/api/issues/270)
+
+## [0.57.0](https://github.com/arnakoff/api/compare/v0.56.2...v0.57.0) (2026-11-05)
+
+
+### Features
+
+* **app:** back up the api keys daily out of scaleway, sealed with age ([#294](https://github.com/arnakoff/api/issues/294)) ([81cae86](https://github.com/arnakoff/api/commit/81cae86fff38c862abb4acc019c1022dfc6e8bcd)), closes [#75](https://github.com/arnakoff/api/issues/75)
+
+## [0.56.2](https://github.com/arnakoff/api/compare/v0.56.1...v0.56.2) (2026-11-04)
+
+
+### Bug Fixes
+
+* **ci:** leave the opentofu state bucket to the owner ([#290](https://github.com/arnakoff/api/issues/290)) ([43f84ac](https://github.com/arnakoff/api/commit/43f84acb97c0bc8f3b76af99d571b94d6e27fa0d)), closes [#289](https://github.com/arnakoff/api/issues/289)
+* **httpapi:** spend one unit of the key quota per batch item ([#292](https://github.com/arnakoff/api/issues/292)) ([72eed01](https://github.com/arnakoff/api/commit/72eed0154c791eb0749acc4b93001dc355c3766b)), closes [#291](https://github.com/arnakoff/api/issues/291)
+
+## [0.56.1](https://github.com/arnakoff/api/compare/v0.56.0...v0.56.1) (2026-11-04)
+
+
+### Bug Fixes
+
+* **platform:** start no registry lookup for a check past its deadline ([#288](https://github.com/arnakoff/api/issues/288)) ([a4fb77c](https://github.com/arnakoff/api/commit/a4fb77cdf544cea715fa57f466f70ad488fd16c9)), closes [#287](https://github.com/arnakoff/api/issues/287)
+* **sync:** compare the shrink against the stored snapshot when none is in service ([#283](https://github.com/arnakoff/api/issues/283)) ([bb05d01](https://github.com/arnakoff/api/commit/bb05d01e3a5cd86a260ec7cb807689f1ff367313)), closes [#282](https://github.com/arnakoff/api/issues/282)
+* **sync:** refuse a snapshot whose rows the readers cannot index ([#286](https://github.com/arnakoff/api/issues/286)) ([3cbf866](https://github.com/arnakoff/api/commit/3cbf866a8ba978af3ddfa2773b4e59291c42f47e)), closes [#285](https://github.com/arnakoff/api/issues/285)
+
+## [0.56.0](https://github.com/arnakoff/api/compare/v0.55.0...v0.56.0) (2026-11-04)
+
+
+### Features
+
+* **ci:** publish the mcp server to the official registry on each release ([#279](https://github.com/arnakoff/api/issues/279)) ([cf5b4ee](https://github.com/arnakoff/api/commit/cf5b4ee24ed32608ff6248c186f063967b426447)), closes [#278](https://github.com/arnakoff/api/issues/278)
+
 ## [0.55.0](https://github.com/arnakoff/api/compare/v0.54.0...v0.55.0) (2026-11-04)
 
 
