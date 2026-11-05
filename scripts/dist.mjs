@@ -12,10 +12,14 @@ import { AUTH_PATH, ERRORS_PATH, MCP_PATH, REFERENCE_PATH } from '../src/lib/sit
 
 export const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 
-/** The errors of the copy of the API contract, each with its page, as the build reads them. */
-export const PROBLEMS = problemsOf(
-  readFileSync(new URL('../src/content/api/openapi.yaml', import.meta.url), 'utf8'),
+/** The copy of the API contract that the build reads (`npm run sync`). */
+export const CONTRACT = readFileSync(
+  new URL('../src/content/api/openapi.yaml', import.meta.url),
+  'utf8',
 );
+
+/** The errors of the copy of the API contract, each with its page, as the build reads them. */
+export const PROBLEMS = problemsOf(CONTRACT);
 
 /** Every page the site must build, as its URL path. */
 export const PAGES = [

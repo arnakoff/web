@@ -56,3 +56,23 @@
 .sl-openapi-example div.expressive-code figure.frame pre {
   background-color: var(--ec-frm-edBg);
 }
+
+/*
+ * The method, the path and the code sample picker share one row: on a phone
+ * the path would scroll, a region that keyboard users cannot reach (axe
+ * scrollable-region-focusable). It wraps instead.
+ */
+.sl-openapi-operation-method .sl-openapi-operation-method-path {
+  overflow-x: visible;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * The code sample picker and the operation URLs button keep the browser's
+ * thin focus ring, close to their border: they get the site focus ring.
+ */
+.sl-openapi-snippet-picker select:focus-visible,
+.sl-openapi-operation-description-button:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
