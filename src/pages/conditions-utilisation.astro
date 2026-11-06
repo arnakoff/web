@@ -1,0 +1,219 @@
+---
+// Terms of use of the site, the online checker, the API and its MCP server.
+// Every fact comes from arnakoff/api: api/openapi.yaml (signals, keys, the
+// demo route, public reference routes), docs/standards.md (Deprecation and
+// Sunset, six months' notice), ADR 0003 (licences), ADR 0006 (no retention
+// of the checked entries) and cmd/admin (key revoke). The legal choices
+// (liability, applicable law) wait for the owner's legal review
+// (arnakoff-conformite, point 2 of the review).
+import Base from '../layouts/Base.astro';
+import Toc from '../components/Toc.astro';
+import {
+  API_STANDARDS_URL,
+  AUTH_PATH,
+  CHECKER_PATH,
+  CONTACT_EMAIL,
+  CONTACT_MAILTO,
+  MCP_PATH,
+  PRIVACY_PATH,
+  REPO_API_URL,
+  REPO_WEB_URL,
+  SECURITY_POLICY_URL,
+  SIGNALS_PATH,
+  SOURCES_PATH,
+  TERMS_HISTORY_URL,
+} from '../lib/site';
+import { problemPath } from '../lib/problems';
+
+const title = "Conditions d'utilisation · Arnakoff";
+const description =
+  "Les règles d'usage du site arnakoff.com, du vérificateur en ligne et de l'API Arnakoff : ce que donne le service, les quotas, l'usage acceptable et les limites de responsabilité.";
+
+/** Version of these terms: change it with every change of their text. */
+const VERSION = '06/11/2026';
+
+/** Section headings, in page order, keyed by their fragment identifier. */
+const SECTIONS = {
+  service: "Ce qu'Arnakoff donne",
+  acces: 'Accès et clé API',
+  quotas: 'Quotas',
+  usage: 'Usage acceptable',
+  revocation: 'Révocation et arrêt',
+  disponibilite: 'Disponibilité et évolutions',
+  responsabilite: 'Responsabilité',
+  licences: 'Licences',
+  donnees: 'Données personnelles',
+  modifications: 'Modifications',
+  droit: 'Droit applicable et contact',
+} as const;
+
+const TOC = Object.entries(SECTIONS).map(([id, label]) => ({ id, label }));
+---
+
+<Base title={title} description={description}>
+  <h1>Conditions d'utilisation</h1>
+  <p>
+    Ces conditions s'appliquent au site arnakoff.com, à son{' '}
+    <a href={CHECKER_PATH}>vérificateur en ligne</a>, à l'API Arnakoff et à son{' '}
+    <a href={MCP_PATH}>serveur MCP</a>. Utiliser l'un d'eux, c'est les accepter.
+  </p>
+  <p>Version du {VERSION}.</p>
+
+  <Toc items={TOC} />
+
+  <h2 id="service">{SECTIONS.service}</h2>
+  <ul>
+    <li>
+      Arnakoff renvoie des signaux sur un site, une adresse e-mail, un numéro de téléphone, un IBAN,
+      un SIREN ou un SIRET. Chaque signal donne sa source et sa date d'observation.
+    </li>
+    <li>
+      Un signal est un fait tiré d'une source publique, pas un verdict. Arnakoff ne juge pas une
+      personne ou une entreprise : il dit ce que ses sources publient.
+    </li>
+    <li>
+      Aucun signal veut dire « Aucun signal connu dans nos sources ». L'absence d'une liste noire ne
+      prouve rien.
+    </li>
+    <li>
+      La décision t'appartient. Croise les signaux avec d'autres vérifications avant d'agir. La{' '}
+      <a href={SIGNALS_PATH}>page des signaux</a> dit ce que chacun veut dire.
+    </li>
+  </ul>
+
+  <h2 id="acces">{SECTIONS.acces}</h2>
+  <ul>
+    <li>Le site et le vérificateur en ligne sont gratuits et sans compte.</li>
+    <li>
+      Le vérificateur passe par une protection anti-robot de Cloudflare (Turnstile) et a un quota
+      faible. Sa route, <code>POST /v1/demo/check</code>, ne sert qu'au site.
+    </li>
+    <li>
+      Les routes de vérification de l'API et le serveur MCP demandent une clé API. La clé est
+      gratuite. Une adresse e-mail a une seule clé active : en obtenir une nouvelle révoque
+      l'ancienne.
+    </li>
+    <li>
+      Ta clé est à toi seul. Garde-la secrète, côté serveur. Les requêtes faites avec elle sont sous
+      ta responsabilité. Si elle a fuité,{' '}
+      <a href={`${AUTH_PATH}#faire-tourner-la-clé`}>fais-la tourner</a>.
+    </li>
+    <li>
+      Les routes de référence, <code>GET /v1/sources</code> et <code>GET /v1/signals</code>, sont
+      publiques.
+    </li>
+  </ul>
+
+  <h2 id="quotas">{SECTIONS.quotas}</h2>
+  <p>
+    Chaque clé et chaque adresse du client ont un quota de requêtes par minute. Au-delà, l'API
+    répond{' '}
+    <a href={problemPath('too_many_requests')}>
+      <code>too_many_requests</code>
+    </a>{' '}
+    (<code>429</code>). Les valeurs et la façon de les lire sont dans la page{' '}
+    <a href={AUTH_PATH}>Authentification et quotas</a>. Elles peuvent changer : les en-têtes{' '}
+    <code>RateLimit</code> et <code>RateLimit-Policy</code> de chaque réponse donnent celles qui
+    s'appliquent.
+  </p>
+
+  <h2 id="usage">{SECTIONS.usage}</h2>
+  <p>Tu t'engages à ne pas :</p>
+  <ul>
+    <li>
+      contourner les quotas, par exemple en multipliant les adresses e-mail pour obtenir plusieurs
+      clés, ou les adresses IP pour répartir tes requêtes ;
+    </li>
+    <li>
+      appeler la route du vérificateur ailleurs que depuis le site, ou contourner sa protection
+      anti-robot ;
+    </li>
+    <li>
+      perturber le service, ou chercher à accéder à ce qui ne t'est pas ouvert. Une faille se
+      signale en privé, selon la <a href={SECURITY_POLICY_URL}>politique de sécurité</a> ;
+    </li>
+    <li>
+      présenter un signal comme une accusation. Un signal se cite avec sa source et sa date, sans en
+      faire un jugement sur une personne ou une entreprise ;
+    </li>
+    <li>vérifier les données d'une personne pour autre chose que prévenir une fraude.</li>
+  </ul>
+
+  <h2 id="revocation">{SECTIONS.revocation}</h2>
+  <ul>
+    <li>
+      Si tu ne respectes pas ces conditions, l'éditeur peut révoquer ta clé, sans préavis quand
+      l'abus met le service en danger. Les requêtes qui la portent reçoivent alors{' '}
+      <a href={problemPath('invalid_api_key')}>
+        <code>invalid_api_key</code>
+      </a>{' '}
+      (<code>401</code>).
+    </li>
+    <li>
+      Tu peux arrêter quand tu veux. Pour effacer ton compte et tes clés, écris à{' '}
+      <a href={CONTACT_MAILTO}>{CONTACT_EMAIL}</a>.
+    </li>
+  </ul>
+
+  <h2 id="disponibilite">{SECTIONS.disponibilite}</h2>
+  <ul>
+    <li>Le service est fourni gratuitement, tel quel, sans engagement de disponibilité.</li>
+    <li>
+      Les signaux dépendent des sources. Une source peut être en retard, incomplète ou indisponible.
+      La page <a href={SOURCES_PATH}>Sources</a> dit à quel rythme chacune est mise à jour, et{' '}
+      <code>GET /v1/sources</code> donne l'état de ses données en service.
+    </li>
+    <li>
+      L'API est versionnée par son chemin (<code>/v1</code>). Retirer une version ou un champ du
+      contrat public demande un préavis d'au moins six mois, annoncé par les en-têtes{' '}
+      <code>Deprecation</code> et <code>Sunset</code> (
+      <a href={API_STANDARDS_URL}>standards de l'API</a>).
+    </li>
+  </ul>
+
+  <h2 id="responsabilite">{SECTIONS.responsabilite}</h2>
+  <ul>
+    <li>
+      Arnakoff reprend les sources telles que leurs éditeurs les publient. Il ne garantit ni leur
+      exactitude ni leur exhaustivité.
+    </li>
+    <li>
+      Dans les limites permises par la loi, l'éditeur ne répond pas des décisions prises à partir
+      d'un signal ou de l'absence de signal, ni des dommages indirects liés à l'usage du service ou
+      à son interruption.
+    </li>
+  </ul>
+
+  <h2 id="licences">{SECTIONS.licences}</h2>
+  <ul>
+    <li>
+      Le <a href={REPO_API_URL}>code de l'API</a> est sous licence AGPL-3.0-only, celui du{' '}
+      <a href={REPO_WEB_URL}>site</a> sous licence MIT.
+    </li>
+    <li>
+      Les données gardent la licence de leur source, donnée sur la page{' '}
+      <a href={SOURCES_PATH}>Sources</a>. Chaque signal porte sa source et son adresse (champs{' '}
+      <code>source</code> et <code>source_url</code>) : garde-les quand tu le réutilises.
+    </li>
+  </ul>
+
+  <h2 id="donnees">{SECTIONS.donnees}</h2>
+  <p>
+    Ce que tu vérifies n'est pas conservé : l'entrée est traitée en mémoire le temps de la requête,
+    jamais écrite en base. Une adresse e-mail, un numéro ou un IBAN n'apparaît dans les journaux que
+    sous une forme masquée. Ce que le service garde d'autre, combien de temps et tes droits sont
+    dans la <a href={PRIVACY_PATH}>politique de confidentialité</a>.
+  </p>
+
+  <h2 id="modifications">{SECTIONS.modifications}</h2>
+  <p>
+    Ces conditions peuvent changer. La date de version, en haut de page, change avec elles. Leur{' '}
+    <a href={TERMS_HISTORY_URL}>historique</a> est public.
+  </p>
+
+  <h2 id="droit">{SECTIONS.droit}</h2>
+  <p>
+    Ces conditions sont soumises au droit français. Pour toute question, écris à{' '}
+    <a href={CONTACT_MAILTO}>{CONTACT_EMAIL}</a>.
+  </p>
+</Base>

@@ -1,12 +1,13 @@
 ---
-// Footer of the showcase pages: documentation, source code, legal notice and
-// privacy policy.
+// Footer of the showcase pages: documentation, source code, legal notice,
+// privacy policy and terms of use.
 import {
   DOCS_PATH,
   LEGAL_NOTICE_PATH,
   PRIVACY_PATH,
   REPO_API_URL,
   REPO_WEB_URL,
+  TERMS_PATH,
 } from '../lib/site';
 
 const LINKS = [
@@ -15,6 +16,7 @@ const LINKS = [
   { href: REPO_WEB_URL, label: 'Code source du site' },
   { href: LEGAL_NOTICE_PATH, label: 'Mentions légales' },
   { href: PRIVACY_PATH, label: 'Confidentialité' },
+  { href: TERMS_PATH, label: "Conditions d'utilisation" },
 ] as const;
 ---
 
