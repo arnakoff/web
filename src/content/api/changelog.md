@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.62.1](https://github.com/arnakoff/api/compare/v0.62.0...v0.62.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* **registry:** keep every instance together within the SIRENE rate limit ([#337](https://github.com/arnakoff/api/issues/337)) ([7d6986b](https://github.com/arnakoff/api/commit/7d6986b6bcf30cf58cdd2bb188784e92c0f86729)), closes [#336](https://github.com/arnakoff/api/issues/336)
+
+## [0.62.0](https://github.com/arnakoff/api/compare/v0.61.0...v0.62.0) (2026-11-06)
+
+
+### Features
+
+* **httpapi:** let the site read GET /v1/sources ([#333](https://github.com/arnakoff/api/issues/333)) ([2b3b34e](https://github.com/arnakoff/api/commit/2b3b34e49c5cdf976be9fe79f3edbd5726b9c36f)), closes [#332](https://github.com/arnakoff/api/issues/332)
+
+## [0.61.0](https://github.com/arnakoff/api/compare/v0.60.2...v0.61.0) (2026-11-06)
+
+
+### Features
+
+* **httpapi:** cap the login links mailed per hour to every address ([#329](https://github.com/arnakoff/api/issues/329)) ([18038f6](https://github.com/arnakoff/api/commit/18038f6b6905d0e606d48995585e17486eb5190b)), closes [#245](https://github.com/arnakoff/api/issues/245)
+
+## [0.60.2](https://github.com/arnakoff/api/compare/v0.60.1...v0.60.2) (2026-11-06)
+
+
+### Bug Fixes
+
+* **platform:** retry the idempotent scaleway calls of the rotate job ([#327](https://github.com/arnakoff/api/issues/327)) ([a35291c](https://github.com/arnakoff/api/commit/a35291cfc64777c5ea4b1491dca2f9ef1a29c38c)), closes [#312](https://github.com/arnakoff/api/issues/312)
+
 ## [0.60.1](https://github.com/arnakoff/api/compare/v0.60.0...v0.60.1) (2026-11-05)
 
 
