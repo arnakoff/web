@@ -17,6 +17,8 @@ export const CHECKER_PATH = '/verifier/';
 
 /** Path of the privacy policy: what each part of Arnakoff keeps, for how long, and the rights. */
 export const PRIVACY_PATH = '/confidentialite/';
+/** Path of the legal notice: publisher, contact and host. */
+export const LEGAL_NOTICE_PATH = '/mentions-legales/';
 
 /** Path where Starlight serves the API documentation. */
 export const DOCS_PATH = '/docs/';
@@ -116,6 +118,24 @@ export const PRIVACY_URLS = {
   webAnalytics: 'https://developers.cloudflare.com/web-analytics/about/',
   cnilComplaint: 'https://www.cnil.fr/fr/adresser-une-plainte',
 } as const;
+
+/**
+ * Host of the website (Cloudflare Pages), as Cloudflare gives it on
+ * https://www.cloudflare.com/website-terms/, checked on 06/11/2026.
+ */
+export const SITE_HOST = {
+  name: 'Cloudflare, Inc.',
+  address: '101 Townsend St, San Francisco, CA 94107, États-Unis',
+  phone: '+1 650 319 8930',
+  tel: 'tel:+16503198930',
+} as const;
+
+/**
+ * Article 1-1 of the LCEN (loi n° 2004-575 du 21 juin 2004), whose II lets a
+ * non-professional publisher stay anonymous. Checked on Légifrance on 06/11/2026.
+ */
+export const LCEN_PUBLISHER_URL =
+  'https://www.legifrance.gouv.fr/loda/article_lc/LEGIARTI000049568614';
 
 /** Official services for a scam victim, each checked on its own site on 29/10/2026. */
 export const HELP_URLS = {

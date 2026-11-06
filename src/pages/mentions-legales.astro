@@ -1,0 +1,54 @@
+---
+// Legal notice (LCEN, article 1-1). The publisher is a non-professional
+// individual who keeps the anonymity that article 1-1, II allows: only the
+// host is named, and the owner's identity stays in arnakoff-conformite.
+import Base from '../layouts/Base.astro';
+import FactList from '../components/FactList.astro';
+import {
+  CONTACT_EMAIL,
+  CONTACT_MAILTO,
+  LCEN_PUBLISHER_URL,
+  REPO_WEB_URL,
+  SITE_HOST,
+} from '../lib/site';
+
+const title = 'Mentions légales · Arnakoff';
+const description =
+  "Qui édite arnakoff.com, comment le contacter et qui l'héberge : les mentions légales du site.";
+
+/** Every value is a constant of lib/site.ts, so the HTML below is safe. */
+const PUBLISHER = [
+  {
+    label: 'Éditeur',
+    html: 'Une personne physique, aussi directrice de la publication.',
+  },
+  { label: 'Contact', html: `<a href="${CONTACT_MAILTO}">${CONTACT_EMAIL}</a>` },
+];
+
+const HOST = [
+  { label: 'Nom', html: SITE_HOST.name },
+  { label: 'Adresse', html: SITE_HOST.address },
+  { label: 'Téléphone', html: `<a href="${SITE_HOST.tel}">${SITE_HOST.phone}</a>` },
+];
+---
+
+<Base title={title} description={description}>
+  <h1>Mentions légales</h1>
+
+  <h2>Éditeur</h2>
+  <p>
+    Arnakoff est édité à titre non professionnel. L'identité de l'éditeur n'est pas publiée, comme
+    le permet la <a href={LCEN_PUBLISHER_URL}>loi pour la confiance dans l'économie numérique</a>{' '}
+    (article 1-1, II) : elle a été communiquée à l'hébergeur.
+  </p>
+  <FactList facts={PUBLISHER} />
+
+  <h2>Hébergeur</h2>
+  <p>Le site est hébergé par Cloudflare Pages.</p>
+  <FactList facts={HOST} />
+
+  <h2>Code source</h2>
+  <p>
+    Le <a href={REPO_WEB_URL}>code source du site</a> est public, sous licence MIT.
+  </p>
+</Base>
