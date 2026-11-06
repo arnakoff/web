@@ -33,7 +33,7 @@ import {
   TURNSTILE_SCRIPT_URL,
 } from '../src/lib/site.ts';
 import { DIST, PAGES, requireDist, serveDist } from './dist.mjs';
-import { checkTrackers, watchPage } from './trackers.mjs';
+import { PAGE_ORIGINS, checkTrackers, watchPage } from './trackers.mjs';
 
 /** Viewports every page is checked at, in CSS pixels. */
 const VIEWPORTS = [
@@ -170,12 +170,6 @@ function stubSources(page, status = 200, body = STATUS_SOURCES) {
         }),
   );
 }
-
-/** The outside origins a page may call: the API and Turnstile for the checker, the API for the status page. */
-const OUTSIDE_ORIGINS = new Map([
-  [CHECKER_PATH, [TURNSTILE_ORIGIN]],
-  [STATUS_PATH, [API_ORIGIN]],
-]);
 
 /** The token the stand-in for Turnstile gives. */
 const TURNSTILE_TOKEN = 'test-token';
@@ -443,7 +437,7 @@ try {
         const where = `${path} ${String(viewport.width)}px ${colorScheme}`;
         const context = await browser.newContext({ viewport, colorScheme });
         const page = await context.newPage();
-        watchPage(page, where, origin, errors, OUTSIDE_ORIGINS.get(path) ?? []);
+        watchPage(page, where, origin, errors, PAGE_ORIGINS.get(path) ?? []);
         await stubTurnstile(page);
         await stubSources(page);
         const url = origin + path;
