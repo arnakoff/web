@@ -3,7 +3,6 @@
 // a scam. Every claim comes from arnakoff/api: README, docs/signals.md and
 // docs/sources.md.
 import Base from '../layouts/Base.astro';
-import ApiStatus from '../components/ApiStatus.astro';
 import Callout from '../components/Callout.astro';
 import { CALLOUT_LABELS } from '../lib/callout';
 import { DOCS_PATH, HELP_URLS, SIGNALS_PATH, SOURCES_PATH } from '../lib/site';
@@ -44,8 +43,6 @@ const description =
 
 <Base title={title} description={description}>
   <h1>Comment ça marche</h1>
-
-  <ApiStatus>Cette page décrit ce qu'elle fera.</ApiStatus>
 
   <h2>En quelques étapes</h2>
   <ol>

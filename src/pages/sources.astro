@@ -2,7 +2,6 @@
 // The data sources of Arnakoff: publisher, licence, freshness and use of each
 // one, read from the copy of arnakoff/api docs/sources.md (lib/sources.ts).
 import Base from '../layouts/Base.astro';
-import ApiStatus from '../components/ApiStatus.astro';
 import FactList from '../components/FactList.astro';
 import Toc from '../components/Toc.astro';
 import { REFUSED_SOURCES, SOURCES } from '../lib/sources';
@@ -20,8 +19,6 @@ const description =
     licence, à quel rythme elle change et ce que l'API en tire. Une source absente de cette page
     n'est pas utilisée.
   </p>
-
-  <ApiStatus>Cette page décrit les sources qu'elle consultera.</ApiStatus>
 
   <h2>Fraîcheur des données</h2>
   <ul>

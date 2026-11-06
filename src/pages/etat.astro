@@ -5,7 +5,6 @@
 // (/healthz, /readyz) are outside its public contract: an answer of this
 // route is what says that the API answers. Nothing is stored.
 import Base from '../layouts/Base.astro';
-import ApiStatus from '../components/ApiStatus.astro';
 import Button from '../components/Button.astro';
 import Callout from '../components/Callout.astro';
 import { REFERENCE_PATH, SOURCES_PATH } from '../lib/site';
@@ -24,8 +23,6 @@ const description =
     </a>{' '}
     donne l'état des données de chaque source. Rien n'est conservé.
   </p>
-
-  <ApiStatus>Cette page lit déjà ses réponses.</ApiStatus>
 
   <div class="live">
     <section aria-labelledby="status-title">

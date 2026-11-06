@@ -8,7 +8,6 @@
 // the request. A domain's result gets a share link (lib/share.ts) that carries
 // the domain alone, in the fragment; opening it runs the check again.
 import Base from '../layouts/Base.astro';
-import ApiStatus from '../components/ApiStatus.astro';
 import Button from '../components/Button.astro';
 import Callout from '../components/Callout.astro';
 import { CALLOUT_LABELS } from '../lib/callout';
@@ -26,8 +25,6 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
     Colle ce que tu as reçu. Arnakoff cherche ce que ses <a href={SOURCES_PATH}>sources</a> publient
     dessus et te donne chaque fait avec le lien pour le vérifier.
   </p>
-
-  <ApiStatus>Le vérificateur répondra dès sa mise en service.</ApiStatus>
 
   <form id="checker" novalidate>
     <label for="checker-q">Ce que tu veux vérifier</label>

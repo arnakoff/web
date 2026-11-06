@@ -3,11 +3,10 @@
 // its principles and how to start. Every claim comes from arnakoff/api: README,
 // api/openapi.yaml and ADR 0001 (free with a quota).
 import Base from '../layouts/Base.astro';
-import ApiStatus from '../components/ApiStatus.astro';
 import Button from '../components/Button.astro';
 import { SITE_DESCRIPTION, SITE_NAME, jsonLdScript, organizationJsonLd } from '../lib/meta';
 import { compactJson, contractExample } from '../lib/openapi';
-import { DOCS_PATH, HOW_IT_WORKS_PATH, REFERENCE_PATH, SITE_URL } from '../lib/site';
+import { AUTH_PATH, DOCS_PATH, HOW_IT_WORKS_PATH, REFERENCE_PATH, SITE_URL } from '../lib/site';
 
 /** The contract's example of a domain on the AMF blacklist, and its request. */
 const example = contractExample('ReportBlacklisted');
@@ -67,8 +66,6 @@ const description = SITE_DESCRIPTION;
     </Button>
   </p>
 
-  <ApiStatus>Ce site décrit ce qu'elle fera.</ApiStatus>
-
   <h2>Une réponse de l'API</h2>
   <p>
     L'API confronte l'entrée à des sources publiques : les listes noires de l'AMF et de l'ACPR, le
@@ -109,8 +106,9 @@ const description = SITE_DESCRIPTION;
       chaque route, ses paramètres et ses réponses.
     </li>
     <li>
-      <strong>La clé gratuite.</strong> L'API sera gratuite, avec un quota. Tu pourras demander ta
-      clé à son ouverture.
+      <strong>La clé gratuite.</strong> L'API est gratuite, avec un quota. La page pour demander ta
+      clé n'est pas encore en ligne ; la <a href={AUTH_PATH}>documentation</a> décrit déjà le
+      parcours.
     </li>
   </ul>
 </Base>
