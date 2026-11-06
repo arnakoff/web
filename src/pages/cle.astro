@@ -21,7 +21,7 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
 <Base title={title} description={description}>
   <h1>Obtenir une clé API</h1>
   <p>
-    La clé est gratuite, avec un quota décrit dans
+    La clé est gratuite, avec un quota décrit dans{' '}
     <a href={AUTH_PATH}>Authentification et quotas</a>. Une adresse e-mail a une seule clé active :
     en demander une nouvelle révoque l'ancienne.
   </p>
@@ -54,8 +54,7 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
       Ton adresse part vers l'API dans le corps de la requête, jamais dans l'adresse de la page.
       Elle est gardée avec ta clé et supprimée 1 an après sa révocation. Le contrôle anti-abus est
       Turnstile, un service de Cloudflare : ton adresse ne lui est pas envoyée. Le détail est dans
-      la
-      <a href={PRIVACY_PATH}>politique de confidentialité</a>.
+      la <a href={PRIVACY_PATH}>politique de confidentialité</a>.
     </p>
   </form>
   <noscript>
@@ -72,7 +71,7 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
       empreinte. Copie-la tout de suite.
     </li>
     <li>
-      Envoie-la dans l'en-tête <code>Authorization</code> de chaque vérification, comme le montre
+      Envoie-la dans l'en-tête <code>Authorization</code> de chaque vérification, comme le montre{' '}
       <a href={AUTH_PATH}>Authentification et quotas</a>.
     </li>
   </ol>
