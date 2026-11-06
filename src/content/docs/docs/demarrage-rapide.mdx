@@ -1,21 +1,22 @@
 ---
 # Every claim comes from arnakoff/api: api/openapi.yaml (GET /v1/check, the
 # apiKey scheme, Report, Signal, SourceStatus, Problem), cmd/api/doc.go and
-# README.md (not in service yet). The public host is not confirmed yet
-# (src/lib/site.ts), so the examples read it from ARNAKOFF_API_URL. Every
-# example and output below was run against a local build of arnakoff/api
-# main (0.39.0) on 02/11/2026.
+# docs/deploy.md (production on api.arnakoff.com, no preproduction: ADR
+# 0005). The examples read the host from ARNAKOFF_API_URL, set to API_ORIGIN
+# (src/lib/site.ts). Every example and output below was run against
+# production with an ark_live_ key on 06/11/2026.
 title: Démarrage rapide
 description: Ta première vérification avec l'API Arnakoff, en curl, JavaScript, Python et Go, avec la réponse réelle de l'API et ses erreurs.
 ---
 
+import { Code } from '@astrojs/starlight/components';
 import Callout from '../../../components/Callout.astro';
-import { AUTH_PATH, REFERENCE_PATH, SIGNALS_PATH } from '../../../lib/site';
+import { API_ORIGIN, AUTH_PATH, REFERENCE_PATH, SIGNALS_PATH } from '../../../lib/site';
 
-<Callout level="attention" title="l’API n’est pas encore en service">
+<Callout level="attention" title="la page pour obtenir une clé n’est pas encore en ligne">
   <p>
-    Son adresse publique et la façon d'obtenir une clé seront données ici à l'ouverture. Les
-    exemples de cette page ont été exécutés le 02/11/2026 contre une instance locale de l'API.
+    Le lien vers la page du site sera ajouté ici dès son ouverture. Les exemples de cette page ont
+    été exécutés le 06/11/2026 contre l'API en production.
   </p>
 </Callout>
 
@@ -28,10 +29,11 @@ Il te faut deux choses :
 
 Une clé commence par `ark_live_` (production) ou `ark_test_` (préproduction). Elle n'est affichée qu'une fois, à sa création : garde-la hors de ton code et de ton dépôt. Pour l'obtenir, la faire tourner et connaître tes quotas, lis <a href={AUTH_PATH}>Authentification et quotas</a>.
 
-```sh
-export ARNAKOFF_API_URL="<adresse de l'API>"
-export ARNAKOFF_API_KEY="<ta clé>"
-```
+<Code
+  lang="sh"
+  code={`export ARNAKOFF_API_URL="${API_ORIGIN}"
+export ARNAKOFF_API_KEY="<ta clé>"`}
+/>
 
 Chaque exemple vérifie le domaine `armen.ltd` avec `GET /v1/check`. Le paramètre `q` prend l'entrée telle qu'elle a été collée : un domaine, une URL, une adresse e-mail, un numéro de téléphone, un IBAN, un SIREN ou un SIRET. L'API en détecte le type. Le paramètre `type`, facultatif, l'impose.
 
@@ -49,7 +51,7 @@ Réponse, mise en forme :
 {
   "input": "armen.ltd",
   "type": "domain",
-  "checked_at": "2026-11-02T14:08:55Z",
+  "checked_at": "2026-11-06T08:11:04Z",
   "summary": null,
   "signals": [
     {
@@ -58,7 +60,7 @@ Réponse, mise en forme :
       "message": "Figure sur la liste noire de l'AMF (catégorie Usurpation) depuis le 08/10/2026.",
       "source": "AMF",
       "source_url": "https://www.amf-france.org/fr/espace-epargnants/proteger-son-epargne/listes-noires-et-mises-en-garde",
-      "observed_at": "2026-11-02T14:06:51Z"
+      "observed_at": "2026-11-06T05:18:03Z"
     }
   ],
   "sources": [
@@ -233,7 +235,7 @@ Une erreur est un objet `application/problem+json` (RFC 9457) : `status`, `title
   "title": "Clé API manquante",
   "status": 401,
   "detail": "Cette ressource demande une clé API, envoyée dans l'en-tête Authorization avec le schéma Bearer.",
-  "instance": "tag:arnakoff.com,2026:request:5NDVWENTN7ERLDTSOPH55VYGO5",
+  "instance": "tag:arnakoff.com,2026:request:0828156a-7c59-486c-976c-82a24c773407",
   "code": "missing_api_key"
 }
 ```
