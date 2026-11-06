@@ -12,7 +12,7 @@ import ApiStatus from '../components/ApiStatus.astro';
 import Button from '../components/Button.astro';
 import Callout from '../components/Callout.astro';
 import { CALLOUT_LABELS } from '../lib/callout';
-import { HOW_IT_WORKS_PATH, SIGNALS_PATH, SOURCES_PATH } from '../lib/site';
+import { HOW_IT_WORKS_PATH, PRIVACY_PATH, SIGNALS_PATH, SOURCES_PATH } from '../lib/site';
 
 const title = 'Vérifier un lien, un numéro ou un IBAN · Arnakoff';
 const description =
@@ -51,7 +51,8 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
     <p id="checker-privacy" class="hint">
       Ce que tu colles part vers l'API dans le corps de la requête, jamais dans l'adresse de la
       page. L'API ne le conserve pas. Le contrôle anti-abus est Turnstile, un service de Cloudflare
-      : ce que tu colles ne lui est pas envoyé.
+      : ce que tu colles ne lui est pas envoyé. Le détail est dans la
+      <a href={PRIVACY_PATH}>politique de confidentialité</a>.
     </p>
   </form>
   <noscript>

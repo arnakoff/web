@@ -1,0 +1,216 @@
+---
+// Privacy policy of the site and the API (GDPR, articles 13 and 14). Every
+// fact comes from arnakoff/api (ADR 0005 and 0006, docs/deploy.md) and from
+// the processing register validated on 05/11/2026 (arnakoff/api#74); the
+// outside pages it cites are dated in PRIVACY_URLS (lib/site.ts). The
+// controller stays anonymous, as on the legal notice (#31): the contact
+// address is the way to reach them.
+import Base from '../layouts/Base.astro';
+import ApiStatus from '../components/ApiStatus.astro';
+import FactList from '../components/FactList.astro';
+import Toc from '../components/Toc.astro';
+import {
+  CHECKER_PATH,
+  CONTACT_EMAIL,
+  CONTACT_MAILTO,
+  PRIVACY_URLS,
+  REPO_WEB_URL,
+} from '../lib/site';
+
+const title = 'Politique de confidentialité · Arnakoff';
+const description =
+  "Ce que le site et l'API Arnakoff traitent, pourquoi, combien de temps, chez qui, et comment exercer tes droits.";
+
+const SECTIONS = [
+  { id: 'responsable', label: 'Qui traite tes données' },
+  { id: 'site', label: 'Le site' },
+  { id: 'verificateur', label: 'Le vérificateur' },
+  { id: 'api', label: "L'API et les clés" },
+  { id: 'contact', label: 'Quand tu nous écris' },
+  { id: 'durees', label: 'Combien de temps' },
+  { id: 'prestataires', label: 'Prestataires et transferts' },
+  { id: 'droits', label: 'Tes droits' },
+] as const;
+
+/** Every value is a constant written here, so the HTML is safe. */
+const DURATIONS = [
+  {
+    label: 'Ce que tu vérifies',
+    html: 'Aucune conservation. Jamais écrit en base ni journalisé en clair.',
+  },
+  {
+    label: 'Clé active',
+    html: "Tant qu'elle est active : empreinte, libellé, quatre derniers caractères, dates.",
+  },
+  {
+    label: 'Clé révoquée et adresse e-mail du compte',
+    html: '1 an après la révocation, puis suppression automatique.',
+  },
+  {
+    label: 'Lien de connexion et adresse e-mail du demandeur',
+    html: "24 heures après l'expiration ou l'utilisation du lien.",
+  },
+  {
+    label: 'Journaux techniques',
+    html: '90 jours.',
+  },
+  {
+    label: 'Adresse IP, pour la limite de débit',
+    html: 'Une minute, en mémoire seulement.',
+  },
+  {
+    label: 'Réponses des registres publics',
+    html: '24 heures, en mémoire seulement.',
+  },
+  {
+    label: 'Sauvegardes',
+    html: '7 jours pour celle de la base chez Scaleway, 30 jours pour la copie chiffrée des clés sur Amazon S3.',
+  },
+];
+
+const PROVIDERS = [
+  {
+    label: 'Scaleway',
+    html: "Héberge l'API, sa base et ses journaux, et envoie les liens de connexion. En France.",
+  },
+  {
+    label: 'OVHcloud',
+    html: `Héberge la boîte ${CONTACT_EMAIL}. En France.`,
+  },
+  {
+    label: 'Amazon Web Services',
+    html: "Garde la copie de sauvegarde des clés, à Paris, chiffrée avant l'envoi : AWS ne peut pas la lire. Société américaine.",
+  },
+  {
+    label: 'Cloudflare',
+    html: "Héberge le site, mesure l'audience, gère le nom de domaine et fournit Turnstile. Société américaine.",
+  },
+  {
+    label: 'GitHub',
+    html: 'Héberge le code source et les échanges des contributeurs. Société américaine.',
+  },
+];
+---
+
+<Base title={title} description={description}>
+  <h1>Politique de confidentialité</h1>
+  <p>
+    Arnakoff ne pose aucun cookie, n'affiche aucune publicité et ne vend aucune donnée. Cette page
+    dit ce que le site et l'API traitent, pourquoi, combien de temps et chez qui.
+  </p>
+  <p>Dernière mise à jour : 6 novembre 2026.</p>
+
+  <ApiStatus>Cette page décrit aussi ce qu'elle gardera.</ApiStatus>
+
+  <Toc items={SECTIONS} />
+
+  <h2 id="responsable">Qui traite tes données</h2>
+  <p>
+    Le responsable du traitement est l'éditeur d'Arnakoff, une personne physique qui agit à titre
+    non professionnel. Pour toute question ou demande : <a href={CONTACT_MAILTO}>{CONTACT_EMAIL}</a>
+    . Aucun délégué à la protection des données n'est désigné.
+  </p>
+
+  <h2 id="site">Le site</h2>
+  <ul>
+    <li>
+      Cloudflare héberge le site : il reçoit ton adresse IP pour t'envoyer les pages, comme tout
+      hébergeur.
+    </li>
+    <li>
+      Pour compter les visites, le site utilise Cloudflare Web Analytics. Il ne pose ni cookie ni
+      stockage dans ton navigateur et mesure le chargement des pages, sans leurs paramètres
+      d'adresse. Cloudflare garde ces mesures détaillées 7 jours, puis agrégées. Voir
+      <a href={PRIVACY_URLS.webAnalytics}>sa présentation par Cloudflare</a>. Base légale :
+      l'intérêt légitime de savoir quelles pages servent.
+    </li>
+    <li>
+      Si tu choisis un thème clair ou sombre, ton navigateur le retient sous la clé
+      <code>starlight-theme</code>. Ce choix ne quitte pas ton appareil.
+    </li>
+  </ul>
+
+  <h2 id="verificateur">Le vérificateur</h2>
+  <p>
+    Sur <a href={CHECKER_PATH}>le vérificateur</a>, ce que tu colles part vers l'API dans le corps
+    de la requête, jamais dans l'adresse de la page. Le lien de partage d'un résultat ne contient
+    que le domaine, après le <code>#</code> : ton navigateur ne l'envoie à personne.
+  </p>
+  <p>
+    Ce que tu vérifies peut être une donnée sur quelqu'un d'autre : son e-mail, son numéro ou son
+    IBAN. L'API le traite en mémoire le temps de la requête et ne le garde pas. Ses journaux n'en
+    gardent qu'une forme masquée et un pseudonyme. Les registres publics consultés ne reçoivent
+    qu'un nom de domaine ou un SIREN. Base légale : l'intérêt légitime de prévenir la fraude.
+  </p>
+  <h3>Turnstile, le contrôle anti-robot</h3>
+  <p>
+    Sur cette page seulement, Turnstile, un service de Cloudflare, vérifie que tu n'es pas un robot
+    avant d'envoyer ta demande. Cloudflare traite pour cela des signaux de ton navigateur : ton
+    adresse IP, l'empreinte TLS, l'en-tête User-Agent, la clé et l'origine du site. Ce que tu colles
+    ne lui est pas envoyé ; l'API ne reçoit de lui qu'un jeton.
+  </p>
+  <p>
+    Cloudflare utilise aussi ces signaux pour améliorer sa détection des robots ; pour cet usage, il
+    est seul responsable. Voir son <a href={PRIVACY_URLS.turnstile}>addendum Turnstile</a> et sa
+    <a href={PRIVACY_URLS.cloudflare}>politique de confidentialité</a>. Base légale : l'intérêt
+    légitime de protéger le service des abus.
+  </p>
+
+  <h2 id="api">L'API et les clés</h2>
+  <ul>
+    <li>
+      Pour obtenir une clé, tu donnes ton adresse e-mail. L'API t'envoie un lien de connexion pour
+      prouver qu'elle est à toi.
+    </li>
+    <li>
+      Elle garde ton adresse, le libellé de la clé, son empreinte (jamais la clé elle-même), ses
+      quatre derniers caractères, ses dates de création et de révocation, et tes compteurs de quota.
+      Base légale : le contrat qui te lie à Arnakoff quand tu utilises l'API.
+    </li>
+    <li>
+      Les journaux techniques gardent la méthode, la route, le statut, la taille et la durée de
+      chaque requête, sans ton adresse IP. Elle sert seulement à limiter le débit, en mémoire,
+      pendant une minute. Base légale : l'intérêt légitime d'assurer la sécurité du service.
+    </li>
+  </ul>
+
+  <h2 id="contact">Quand tu nous écris</h2>
+  <p>
+    Si tu écris à <a href={CONTACT_MAILTO}>{CONTACT_EMAIL}</a>, ton adresse et ton message arrivent
+    dans une boîte hébergée par OVHcloud, et servent à te répondre. Si tu contribues au
+    <a href={REPO_WEB_URL}>code source</a>, ton identifiant GitHub reste public sur GitHub.
+  </p>
+
+  <h2 id="durees">Combien de temps</h2>
+  <FactList facts={DURATIONS} />
+  <p>
+    Une donnée supprimée reste dans les sauvegardes jusqu'à leur expiration. Une clé révoquée
+    disparaît donc au plus tard 1 an et 31 jours après sa révocation.
+  </p>
+
+  <h2 id="prestataires">Prestataires et transferts</h2>
+  <p>Ces prestataires traitent des données pour Arnakoff, sous contrat :</p>
+  <FactList facts={PROVIDERS} />
+  <p>
+    Amazon Web Services, Cloudflare et GitHub sont des sociétés américaines. Le transfert de données
+    vers les États-Unis repose sur leur certification au Data Privacy Framework, avec les clauses
+    contractuelles types de la Commission européenne en secours.
+  </p>
+
+  <h2 id="droits">Tes droits</h2>
+  <p>
+    Tu peux demander l'accès à tes données, leur rectification, leur effacement, leur portabilité,
+    la limitation de leur traitement ou t'opposer à un traitement fondé sur l'intérêt légitime.
+    Écris à<a href={CONTACT_MAILTO}>{CONTACT_EMAIL}</a> : la réponse arrive sous un mois.
+  </p>
+  <p>
+    Un effacement supprime aussitôt toutes les clés de ton compte, actives ou révoquées, et tes
+    demandes de lien. Elles restent dans les sauvegardes jusqu'à leur expiration : au plus 7 jours
+    chez Scaleway et 30 jours sur Amazon S3. Ce que tu as vérifié n'est pas conservé : il n'y a rien
+    à communiquer ni à effacer.
+  </p>
+  <p>
+    Si la réponse ne te convient pas, tu peux
+    <a href={PRIVACY_URLS.cnilComplaint}>adresser une plainte à la CNIL</a>.
+  </p>
+</Base>
