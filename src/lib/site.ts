@@ -15,6 +15,9 @@ export const SIGNALS_PATH = '/signaux/';
 /** Path of the online checker. */
 export const CHECKER_PATH = '/verifier/';
 
+/** Path of the privacy policy: what each part of Arnakoff keeps, for how long, and the rights. */
+export const PRIVACY_PATH = '/confidentialite/';
+
 /** Path where Starlight serves the API documentation. */
 export const DOCS_PATH = '/docs/';
 
@@ -95,6 +98,23 @@ export const STANDARD_URLS = {
   deprecation: 'https://www.rfc-editor.org/rfc/rfc9745',
   sunset: 'https://www.rfc-editor.org/rfc/rfc8594',
   mcp: 'https://modelcontextprotocol.io',
+} as const;
+
+/** Contact address of Arnakoff (arnakoff/.github#3), also used for the code of conduct. */
+export const CONTACT_EMAIL = 'contact@arnakoff.com';
+export const CONTACT_MAILTO = `mailto:${CONTACT_EMAIL}`;
+
+/**
+ * Outside pages the privacy policy relies on, each read on 06/11/2026: the
+ * Turnstile addendum (last updated 18/06/2025), the Cloudflare privacy policy
+ * (effective 04/11/2025), the Web Analytics page that says what the beacon
+ * collects, and the CNIL complaint form.
+ */
+export const PRIVACY_URLS = {
+  turnstile: 'https://www.cloudflare.com/turnstile-privacy-policy/',
+  cloudflare: 'https://www.cloudflare.com/privacypolicy/',
+  webAnalytics: 'https://developers.cloudflare.com/web-analytics/about/',
+  cnilComplaint: 'https://www.cnil.fr/fr/adresser-une-plainte',
 } as const;
 
 /** Official services for a scam victim, each checked on its own site on 29/10/2026. */
