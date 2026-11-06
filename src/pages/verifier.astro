@@ -93,18 +93,16 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
 </Base>
 
 <script>
-  import { CALLOUT_LABELS, type CalloutLevel } from '../lib/callout';
+  import { CALLOUT_LABELS } from '../lib/callout';
   import {
     NO_SIGNAL,
     demoCheck,
     frenchDate,
     httpsUrl,
-    problemPage,
     renderAntiAbuse,
-    requestId,
-    type Problem,
     type Report,
   } from '../lib/checker';
+  import { callout, clone, paragraph, problemNodes } from '../lib/render';
   import { INPUT_NAMES } from '../lib/inputs';
   import { shareUrl, sharedSite } from '../lib/share';
   import { HOW_IT_WORKS_PATH } from '../lib/site';
@@ -117,39 +115,6 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
   const result = document.querySelector<HTMLElement>('#checker-result');
   const heading = document.querySelector<HTMLElement>('#checker-result-title');
   const output = document.querySelector<HTMLElement>('#checker-output');
-
-  /** A paragraph of text and links. */
-  function paragraph(...parts: (string | { href: string; label: string })[]): HTMLParagraphElement {
-    const p = document.createElement('p');
-    for (const part of parts) {
-      if (typeof part === 'string') {
-        p.append(part);
-      } else {
-        const a = document.createElement('a');
-        a.href = part.href;
-        a.textContent = part.label;
-        p.append(a);
-      }
-    }
-    return p;
-  }
-
-  /** A copy of the element of the page's template that `selector` finds. */
-  function clone(selector: string): Element {
-    const node = document
-      .querySelector<HTMLTemplateElement>(selector)
-      ?.content.firstElementChild?.cloneNode(true);
-    if (!(node instanceof Element)) throw new Error(`No template ${selector}.`);
-    return node;
-  }
-
-  /** A Callout of `level` cloned from the page's templates, with `children` as its body. */
-  function callout(level: CalloutLevel, title: string | undefined, children: Node[]): Element {
-    const node = clone(`template[data-callout="${level}"]`);
-    if (title) node.querySelector('.label')?.append(`\u00a0: ${title}`);
-    node.querySelector('.body')?.append(...children);
-    return node;
-  }
 
   /** The share block of `href`, cloned from the page's template, with its copy button. */
   function share(href: string): Element {
@@ -217,16 +182,6 @@ const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
     const href = shareUrl(report);
     if (href) nodes.push(share(href));
     return nodes;
-  }
-
-  function problemNodes(problem: Problem): Node[] {
-    const body = [paragraph(problem.detail)];
-    const id = requestId(problem);
-    if (id)
-      body.push(paragraph(`Identifiant de la requête, à citer si tu signales un problème : ${id}`));
-    const href = problemPage(problem);
-    if (href) body.push(paragraph({ href, label: 'Comprendre cette erreur' }));
-    return [callout('attention', problem.title, body)];
   }
 
   /** Shows `nodes` as the result and moves the focus to its heading. */

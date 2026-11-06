@@ -25,6 +25,7 @@ import {
   API_ORIGIN,
   API_URL,
   CHECKER_PATH,
+  KEY_PATH,
   REFERENCE_PATH,
   SITE_URL,
   TURNSTILE_ORIGIN,
@@ -44,6 +45,9 @@ import {
   requireDist,
   resolve,
 } from './dist.mjs';
+
+/** The pages whose anti-abuse widget needs Turnstile in their CSP. */
+const TURNSTILE_PATHS = [CHECKER_PATH, KEY_PATH];
 
 /** Every PNG image the site must serve, with its size in pixels. */
 const IMAGES = [
@@ -217,9 +221,10 @@ for (const file of htmlFiles(DIST)) {
     for (const hash of inlineScriptHashes(html)) {
       if (!sources('script-src').includes(hash)) fail(name, `CSP script-src lacks ${hash}`);
     }
-    // Turnstile, the anti-abuse widget, is let in on the checker only, by a
-    // single policy: a second one joined with a comma would block it.
-    if (pageUrl.pathname === CHECKER_PATH) {
+    // Turnstile, the anti-abuse widget, is let in on the checker and the key
+    // page only, by a single policy: a second one joined with a comma would
+    // block it.
+    if (TURNSTILE_PATHS.includes(pageUrl.pathname)) {
       if (csp.includes(','))
         fail(name, 'has two Content-Security-Policy values: the one of /* is not dropped');
       for (const directive of ['script-src', 'frame-src']) {
@@ -227,7 +232,10 @@ for (const file of htmlFiles(DIST)) {
           fail(name, `CSP ${directive} lacks ${TURNSTILE_ORIGIN}`);
       }
     } else if (csp.includes(TURNSTILE_ORIGIN)) {
-      fail(name, `CSP lets in ${TURNSTILE_ORIGIN}, which only ${CHECKER_PATH} needs`);
+      fail(
+        name,
+        `CSP lets in ${TURNSTILE_ORIGIN}, which only ${TURNSTILE_PATHS.join(' and ')} need`,
+      );
     }
   }
 

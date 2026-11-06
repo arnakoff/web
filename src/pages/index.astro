@@ -6,7 +6,7 @@ import Base from '../layouts/Base.astro';
 import Button from '../components/Button.astro';
 import { SITE_DESCRIPTION, SITE_NAME, jsonLdScript, organizationJsonLd } from '../lib/meta';
 import { compactJson, contractExample } from '../lib/openapi';
-import { AUTH_PATH, DOCS_PATH, HOW_IT_WORKS_PATH, REFERENCE_PATH, SITE_URL } from '../lib/site';
+import { DOCS_PATH, HOW_IT_WORKS_PATH, KEY_PATH, REFERENCE_PATH, SITE_URL } from '../lib/site';
 
 /** The contract's example of a domain on the AMF blacklist, and its request. */
 const example = contractExample('ReportBlacklisted');
@@ -106,9 +106,8 @@ const description = SITE_DESCRIPTION;
       chaque route, ses paramètres et ses réponses.
     </li>
     <li>
-      <strong>La clé gratuite.</strong> L'API est gratuite, avec un quota. La page pour demander ta
-      clé n'est pas encore en ligne ; la <a href={AUTH_PATH}>documentation</a> décrit déjà le
-      parcours.
+      <strong>La clé gratuite.</strong> L'API est gratuite, avec un quota.{' '}
+      <a href={KEY_PATH}>Demande ta clé</a> avec ton adresse e-mail.
     </li>
   </ul>
 </Base>

@@ -11,22 +11,14 @@ title: Authentification et quotas
 description: Obtenir une clé API Arnakoff, l'envoyer, la faire tourner, et lire les quotas avec les en-têtes RateLimit et la réponse 429.
 ---
 
-import Callout from '../../../components/Callout.astro';
 import { problemPath } from '../../../lib/problems';
-import { REFERENCE_PATH } from '../../../lib/site';
-
-<Callout level="attention" title="la page pour obtenir une clé n’est pas encore en ligne">
-  <p>
-    Le parcours ci-dessous est celui de l'API. Le lien vers la page du site sera ajouté ici dès son
-    ouverture.
-  </p>
-</Callout>
+import { KEY_PATH, REFERENCE_PATH } from '../../../lib/site';
 
 ## Obtenir une clé
 
 La clé est gratuite. Une adresse e-mail a une seule clé active.
 
-1. Sur la page du site, tu donnes ton adresse e-mail.
+1. Sur la page <a href={KEY_PATH}>Obtenir une clé API</a>, tu donnes ton adresse e-mail.
 2. Tu reçois un lien de connexion. Il ne sert qu'une fois et expire après 15 minutes.
 3. La page que le lien ouvre affiche ta clé, une seule fois : le serveur n'en garde qu'une empreinte. Copie-la tout de suite.
 

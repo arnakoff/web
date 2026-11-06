@@ -1,7 +1,13 @@
 // Tracker and CSP checks shared by check-a11y.mjs (the build in dist/) and
 // check-deployed.mjs (a deployment on Cloudflare Pages).
 // Callbacks given to page.evaluate run in the browser.
-import { API_ORIGIN, CHECKER_PATH, STATUS_PATH, TURNSTILE_ORIGIN } from '../src/lib/site.ts';
+import {
+  API_ORIGIN,
+  CHECKER_PATH,
+  KEY_PATH,
+  STATUS_PATH,
+  TURNSTILE_ORIGIN,
+} from '../src/lib/site.ts';
 import { THEME_KEY } from '../src/lib/theme.ts';
 
 /**
@@ -27,12 +33,13 @@ export const ANALYTICS_ORIGINS = [
 
 /**
  * Outside origins a page calls itself, by path: Cloudflare Turnstile on the
- * online checker, which calls the API only once a check is sent, and the API
- * on the status page, at load.
+ * online checker and the key page, which call the API only once a form is
+ * sent or a login link opened, and the API on the status page, at load.
  * @type {ReadonlyMap<string, readonly string[]>}
  */
 export const PAGE_ORIGINS = new Map([
   [CHECKER_PATH, [TURNSTILE_ORIGIN]],
+  [KEY_PATH, [TURNSTILE_ORIGIN]],
   [STATUS_PATH, [API_ORIGIN]],
 ]);
 

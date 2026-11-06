@@ -3,14 +3,18 @@
 // dist/ and check-a11y.mjs never sees it. On each page of PAGES:
 // - no CSP violation;
 // - no request leaves the site, except to Cloudflare Web Analytics, to
-//   Cloudflare Turnstile on the online checker, which alone lets it in, and
+//   Cloudflare Turnstile on the online checker and the key page, which alone
+//   let it in, and
 //   to the API on the status page (PAGE_ORIGINS);
 // - no cookie is set and browser storage holds nothing but interface state.
 // Run by the Deploy job of CI: `node scripts/check-deployed.mjs <url>`.
 import { chromium } from 'playwright';
-import { CHECKER_PATH, TURNSTILE_ORIGIN } from '../src/lib/site.ts';
+import { CHECKER_PATH, KEY_PATH, TURNSTILE_ORIGIN } from '../src/lib/site.ts';
 import { PAGES } from './dist.mjs';
 import { ANALYTICS_ORIGINS, PAGE_ORIGINS, checkTrackers, watchPage } from './trackers.mjs';
+
+/** The pages whose Turnstile widget lets it in, and may keep the network busy. */
+const TURNSTILE_PATHS = [CHECKER_PATH, KEY_PATH];
 
 const [base] = process.argv.slice(2);
 if (!base) {
@@ -37,17 +41,17 @@ try {
       if (ANALYTICS_ORIGINS.includes(url.origin)) analytics.add(url.origin);
     });
     // Waits for the network to go quiet, so the analytics script has run. The
-    // Turnstile widget of the checker may never go quiet: it retries outside
-    // arnakoff.com, the only hostname of its site key.
+    // Turnstile widget of the checker and the key page may never go quiet: it
+    // retries outside arnakoff.com, the only hostname of its site key.
     const response = await page.goto(origin + path, { waitUntil: 'load' });
     await page
       .waitForLoadState('networkidle', { timeout: 15_000 })
       .catch((/** @type {unknown} */ error) => {
-        if (path !== CHECKER_PATH) throw error;
+        if (!TURNSTILE_PATHS.includes(path)) throw error;
       });
-    // Cloudflare Pages must drop the policy of /* on the checker, not join it.
+    // Cloudflare Pages must drop the policy of /* on these pages, not join it.
     const csp = (await response?.allHeaders())?.['content-security-policy'] ?? '';
-    if (csp.includes(TURNSTILE_ORIGIN) !== (path === CHECKER_PATH) || csp.includes(',')) {
+    if (csp.includes(TURNSTILE_ORIGIN) !== TURNSTILE_PATHS.includes(path) || csp.includes(',')) {
       errors.push(`${path}: unexpected Content-Security-Policy: ${csp}`);
     }
     await checkTrackers(page, path, errors);

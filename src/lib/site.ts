@@ -15,6 +15,12 @@ export const SIGNALS_PATH = '/signaux/';
 /** Path of the online checker. */
 export const CHECKER_PATH = '/verifier/';
 
+/**
+ * Path of the page that requests a free API key and opens the login link the
+ * API mails (`ARNAKOFF_LOGIN_LINK_URL`, https://arnakoff.com/cle#<token>).
+ */
+export const KEY_PATH = '/cle/';
+
 /** Path of the status page: whether the API answers and the state of each source's data. */
 export const STATUS_PATH = '/etat/';
 
@@ -60,6 +66,12 @@ export const API_ORIGIN = new URL(API_URL).origin;
 
 /** Keyless check of the online checker (`POST /v1/demo/check`). */
 export const DEMO_CHECK_URL = `${API_URL}/demo/check`;
+
+/** Login link request of a free API key (`POST /v1/keys/request`). */
+export const KEY_REQUEST_URL = `${API_URL}/keys/request`;
+
+/** Key issued from a login link's token (`POST /v1/keys/redeem`). */
+export const KEY_REDEEM_URL = `${API_URL}/keys/redeem`;
 
 /** Sources and the state of their data (`GET /v1/sources`), read by the status page. */
 export const SOURCES_ENDPOINT_URL = `${API_URL}/sources`;

@@ -11,13 +11,10 @@ description: Ta première vérification avec l'API Arnakoff, en curl, JavaScript
 
 import { Code } from '@astrojs/starlight/components';
 import Callout from '../../../components/Callout.astro';
-import { API_ORIGIN, AUTH_PATH, REFERENCE_PATH, SIGNALS_PATH } from '../../../lib/site';
+import { API_ORIGIN, AUTH_PATH, KEY_PATH, REFERENCE_PATH, SIGNALS_PATH } from '../../../lib/site';
 
-<Callout level="attention" title="la page pour obtenir une clé n’est pas encore en ligne">
-  <p>
-    Le lien vers la page du site sera ajouté ici dès son ouverture. Les exemples de cette page ont
-    été exécutés le 06/11/2026 contre l'API en production.
-  </p>
+<Callout level="info" title="exemples réels">
+  <p>Les exemples de cette page ont été exécutés le 06/11/2026 contre l'API en production.</p>
 </Callout>
 
 ## Avant de commencer
@@ -25,7 +22,7 @@ import { API_ORIGIN, AUTH_PATH, REFERENCE_PATH, SIGNALS_PATH } from '../../../li
 Il te faut deux choses :
 
 - l'adresse de l'API, dans la variable `ARNAKOFF_API_URL` ;
-- une clé API, dans la variable `ARNAKOFF_API_KEY`.
+- une clé API, dans la variable `ARNAKOFF_API_KEY` : demande-la sur <a href={KEY_PATH}>Obtenir une clé API</a>.
 
 Une clé commence par `ark_live_` (production) ou `ark_test_` (préproduction). Elle n'est affichée qu'une fois, à sa création : garde-la hors de ton code et de ton dépôt. Pour l'obtenir, la faire tourner et connaître tes quotas, lis <a href={AUTH_PATH}>Authentification et quotas</a>.
 
