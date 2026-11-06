@@ -39,6 +39,9 @@ export const AUTH_PATH = '/docs/authentification/';
 /** Path of the docs page on the MCP server, for AI assistants. */
 export const MCP_PATH = '/docs/mcp/';
 
+/** Path of the terms of use of the site, the online checker and the API. */
+export const TERMS_PATH = '/conditions-utilisation/';
+
 /** Absolute URL of the API documentation. */
 export const DOCS_URL = new URL(DOCS_PATH, SITE_URL).href;
 
@@ -78,6 +81,12 @@ export const TURNSTILE_SITE_KEY = '0x4AAAAAAFxr6UA4T-FbNb5I';
 export const ORG_GITHUB_URL = 'https://github.com/arnakoff';
 export const REPO_WEB_URL = `${ORG_GITHUB_URL}/web`;
 export const REPO_API_URL = `${ORG_GITHUB_URL}/api`;
+
+/** Public history of the terms of use, the source file of their page. */
+export const TERMS_HISTORY_URL = `${REPO_WEB_URL}/commits/main/src/pages/conditions-utilisation.astro`;
+
+/** Security policy of the organization (SECURITY.md of arnakoff/.github). */
+export const SECURITY_POLICY_URL = `${ORG_GITHUB_URL}/.github/blob/main/SECURITY.md`;
 
 /** Roadmap of the Arnakoff organization, linked from the API README. */
 export const ROADMAP_URL = 'https://github.com/orgs/arnakoff/projects/1';

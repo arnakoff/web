@@ -15,6 +15,7 @@ import {
   MCP_PATH,
   PRIVACY_PATH,
   REFERENCE_PATH,
+  TERMS_PATH,
 } from '../src/lib/site.ts';
 
 export const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
@@ -37,6 +38,7 @@ export const PAGES = [
   '/verifier/',
   LEGAL_NOTICE_PATH,
   PRIVACY_PATH,
+  TERMS_PATH,
   '/docs/',
   '/docs/demarrage-rapide/',
   AUTH_PATH,
