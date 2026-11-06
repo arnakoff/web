@@ -1,7 +1,7 @@
 ---
 # Every claim comes from arnakoff/api: docs/standards.md (versioning,
 # Deprecation, Sunset, notice), CONTRIBUTING.md (SemVer, release-please) and
-# README.md (not in service yet). The changelog is the copy of CHANGELOG.md.
+# README.md (in service since 1.0.0, 06/11/2026). The changelog is the copy of CHANGELOG.md.
 title: Versions et dépréciation
 description: Comment l'API Arnakoff est versionnée, comment un retrait est annoncé six mois à l'avance avec les en-têtes Deprecation et Sunset, et le journal de ses versions.
 ---
@@ -10,10 +10,10 @@ import Callout from '../../../components/Callout.astro';
 import Changelog from '../../../components/Changelog.astro';
 import { API_RELEASES_URL, API_STANDARDS_URL, STANDARD_URLS } from '../../../lib/site';
 
-<Callout level="attention" title="l’API n’est pas encore en service">
+<Callout level="info" title="version 1.0.0">
   <p>
-    Ses versions commencent par 0 : selon <a href={STANDARD_URLS.semver}>SemVer</a>, tout peut
-    encore changer avant la version 1.0.0.
+    L'API est en service depuis le 06/11/2026, en version 1.0.0 : son contrat est stable. Un
+    changement cassant passe par une nouvelle version majeure, annoncée comme décrit ci-dessous.
   </p>
 </Callout>
 

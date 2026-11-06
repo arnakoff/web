@@ -6,7 +6,6 @@
 // controller stays anonymous, as on the legal notice (#31): the contact
 // address is the way to reach them.
 import Base from '../layouts/Base.astro';
-import ApiStatus from '../components/ApiStatus.astro';
 import FactList from '../components/FactList.astro';
 import Toc from '../components/Toc.astro';
 import {
@@ -99,8 +98,6 @@ const PROVIDERS = [
     dit ce que le site et l'API traitent, pourquoi, combien de temps et chez qui.
   </p>
   <p>Dernière mise à jour : 6 novembre 2026.</p>
-
-  <ApiStatus>Cette page décrit aussi ce qu'elle gardera.</ApiStatus>
 
   <Toc items={SECTIONS} />
 

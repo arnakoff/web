@@ -4,7 +4,6 @@
 // docs/signals.md (lib/signals.ts). The levels are those of the `Level`
 // schema of openapi.yaml.
 import Base from '../layouts/Base.astro';
-import ApiStatus from '../components/ApiStatus.astro';
 import Callout from '../components/Callout.astro';
 import FactList from '../components/FactList.astro';
 import Toc from '../components/Toc.astro';
@@ -24,8 +23,6 @@ const description =
     Un signal est un fait relevé sur l'entrée que tu vérifies. Chacun porte un code stable, un
     niveau, une phrase en français, sa source, le lien pour la vérifier et la date du relevé.
   </p>
-
-  <ApiStatus>Cette page décrit les signaux qu'elle donnera.</ApiStatus>
 
   <h2>Les niveaux</h2>
   <ul>
