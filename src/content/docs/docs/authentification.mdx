@@ -3,7 +3,7 @@
 # POST /v1/keys/request and /v1/keys/redeem, the RateLimit, RateLimit-Policy
 # and Retry-After headers, the Unauthorized and TooManyRequests responses),
 # .env.example (ARNAKOFF_RATE_LIMIT_* defaults, which deploy/tofu does not
-# override), internal/adapter/httpapi/ratelimit.go (header values) and
+# override; counters kept in memory per instance), internal/adapter/httpapi/ratelimit.go (header values) and
 # docs/performance.md (immediate revocation, #246). The headers and the 429
 # below were captured from production on 04/11/2026. Getting a key needs the
 # site page of arnakoff/web#42, not online yet.
@@ -70,7 +70,9 @@ Chaque élément d'un lot `POST /v1/check/batch` compte pour une requête du quo
 
 Quand le quota `auth` est dépensé, les clés envoyées depuis cette adresse ne sont plus vérifiées : la réponse est `429`, même pour une clé valide, jusqu'à ce qu'il revienne.
 
-Ces valeurs sont celles du 04/11/2026. Les en-têtes de chaque réponse donnent celles qui s'appliquent.
+Les quotas `ip` et `auth` comptent par adresse : derrière une adresse partagée (un réseau d'entreprise derrière un NAT, ou le même préfixe /64 en IPv6), un autre poste peut dépenser le tien. Une clé valide reçoit alors elle aussi `429` du quota `auth`.
+
+Ces valeurs sont celles du 04/11/2026. Chaque instance du serveur tient ses propres compteurs. Les en-têtes de chaque réponse donnent l'état du quota sur l'instance qui répond.
 
 ## Lire les en-têtes
 

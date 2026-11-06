@@ -127,7 +127,7 @@ const GUIDES: Record<string, Guide> = {
     when: [
       'Le quota est atteint : celui de ta clé pour `/v1/check` et `/v1/check/batch`, celui de ton adresse IP pour `/v1/sources` et `/v1/signals`.',
       "Un lot `POST /v1/check/batch` compte une requête par élément : il est refusé en entier, sans rien dépenser, quand il reste moins de requêtes que d'éléments.",
-      'Trop de clés refusées sont venues de ton adresse IP : `/v1/check` et `/v1/check/batch` lui sont alors fermés un temps.',
+      "Trop de clés refusées sont venues de ton adresse IP : `/v1/check` et `/v1/check/batch` lui sont alors fermés un temps, même pour une clé valide. Derrière une adresse partagée (NAT, même préfixe /64 en IPv6), ces clés peuvent venir d'un autre poste.",
       '`POST /v1/demo/check` a deux quotas : celui de ton adresse IP et celui de tous les visiteurs ensemble. Seule une requête au jeton anti-abus accepté entame le second.',
       'La réponse porte les en-têtes `RateLimit`, `RateLimit-Policy` et `Retry-After`. `RateLimit-Policy` nomme le quota atteint : `key`, `ip`, `auth`, `demo` ou `demo_global`.',
     ],
