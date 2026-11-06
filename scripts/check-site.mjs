@@ -239,6 +239,12 @@ for (const file of htmlFiles(DIST)) {
     }
   }
 
+  // A word glued to the link or code that follows it: Astro drops the line
+  // break between them in the source unless a {' '} keeps the space.
+  for (const [glued] of html.matchAll(/[a-zàâçéèêëîïôûù]<(?:a|code)\s/gi)) {
+    fail(name, `a word touches the next link or code: « ${glued} »`);
+  }
+
   // Metadata.
   if (attribute(findTag(html, '<html\\b[^>]*>') ?? '', 'lang') !== 'fr')
     fail(name, '<html lang="fr"> is missing');
