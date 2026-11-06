@@ -1,9 +1,9 @@
 ---
 // The online checker: one input sent to `POST /v1/demo/check` of arnakoff/api
 // (lib/checker.ts), its signals shown as callouts of their level, or its
-// RFC 9457 error. The only page with client JavaScript beyond the theme. The
-// input has no `name` and the CSP forbids form submission, so it can never
-// end up in a URL. Each check carries a token of the Cloudflare Turnstile
+// RFC 9457 error. With the status page, the only client JavaScript beyond the
+// theme. The input has no `name` and the CSP forbids form submission, so it
+// can never end up in a URL. Each check carries a token of the Cloudflare Turnstile
 // widget, rendered in #checker-challenge; without one, the check stops before
 // the request. A domain's result gets a share link (lib/share.ts) that carries
 // the domain alone, in the fragment; opening it runs the check again.

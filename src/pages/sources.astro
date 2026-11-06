@@ -6,7 +6,7 @@ import ApiStatus from '../components/ApiStatus.astro';
 import FactList from '../components/FactList.astro';
 import Toc from '../components/Toc.astro';
 import { REFUSED_SOURCES, SOURCES } from '../lib/sources';
-import { API_SOURCES_URL } from '../lib/site';
+import { API_SOURCES_URL, STATUS_PATH } from '../lib/site';
 
 const title = 'Sources : éditeurs, licences et fraîcheur · Arnakoff';
 const description =
@@ -38,6 +38,10 @@ const description =
       précédent.
     </li>
   </ul>
+  <p>
+    L'état en direct des données de chaque source est sur la page{' '}
+    <a href={STATUS_PATH}>État du service</a>.
+  </p>
 
   <h2>Les sources</h2>
   <Toc items={SOURCES.map(({ id, name }) => ({ id, label: name }))} />

@@ -2,6 +2,7 @@
 // arnakoff/api and reads its answer, a `Report` or an RFC 9457 `Problem` (the
 // schemas of api/openapi.yaml). The input travels in the request body, never
 // in a URL, and the request carries no cookie. Runs in the browser.
+import { isObject, isProblem, requestJson, type Problem } from './api';
 import type { CalloutLevel } from './callout';
 import { parseTheme, type Theme } from './theme';
 import {
@@ -37,14 +38,7 @@ export interface Report {
   sources: { source: string; status: SourceStatus }[];
 }
 
-export interface Problem {
-  type: string;
-  title: string;
-  status: number;
-  detail: string;
-  instance?: string;
-  code: string;
-}
+export type { Problem } from './api';
 
 export type CheckResult =
   | { kind: 'report'; report: Report }
@@ -52,18 +46,11 @@ export type CheckResult =
   /** No answer the checker can read: network failure, timeout or unexpected body. */
   | { kind: 'unreachable' };
 
-/** Longest wait for an answer, in milliseconds. */
-const TIMEOUT = 15_000;
-
 /** Prefix of a Problem's `instance`, before the request identifier. */
 const INSTANCE_PREFIX = 'tag:arnakoff.com,2026:request:';
 
 /** The `summary` of a report without signals (`Report` in openapi.yaml). */
 export const NO_SIGNAL = 'Aucun signal connu dans nos sources';
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
 
 function isReport(value: unknown): value is Report {
   return (
@@ -74,33 +61,17 @@ function isReport(value: unknown): value is Report {
   );
 }
 
-function isProblem(value: unknown): value is Problem {
-  return (
-    isObject(value) &&
-    typeof value.title === 'string' &&
-    typeof value.detail === 'string' &&
-    typeof value.code === 'string'
-  );
-}
-
 /** Checks `q` with the anti-abuse token of the page. */
 export async function demoCheck(q: string, token: string): Promise<CheckResult> {
-  let body: unknown;
-  try {
-    const response = await fetch(DEMO_CHECK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q, turnstile_token: token }),
-      credentials: 'omit',
-      cache: 'no-store',
-      signal: AbortSignal.timeout(TIMEOUT),
-    });
-    body = await response.json();
-    if (response.ok && isReport(body)) return { kind: 'report', report: body };
-  } catch {
-    return { kind: 'unreachable' };
-  }
-  return isProblem(body) ? { kind: 'problem', problem: body } : { kind: 'unreachable' };
+  const answer = await requestJson(DEMO_CHECK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ q, turnstile_token: token }),
+  });
+  if (answer?.ok && isReport(answer.body)) return { kind: 'report', report: answer.body };
+  return isProblem(answer?.body)
+    ? { kind: 'problem', problem: answer.body }
+    : { kind: 'unreachable' };
 }
 
 /** The part of Cloudflare Turnstile's explicit rendering API the checker uses. */

@@ -1,0 +1,140 @@
+---
+// Status page: whether the API answers, and the state of each source's data,
+// read from `GET /v1/sources` of arnakoff/api in the visitor's browser
+// (lib/status.ts) at each visit and on « Actualiser ». The API probes
+// (/healthz, /readyz) are outside its public contract: an answer of this
+// route is what says that the API answers. Nothing is stored.
+import Base from '../layouts/Base.astro';
+import ApiStatus from '../components/ApiStatus.astro';
+import Button from '../components/Button.astro';
+import Callout from '../components/Callout.astro';
+import { REFERENCE_PATH, SOURCES_PATH } from '../lib/site';
+
+const title = 'État du service et des sources · Arnakoff';
+const description =
+  "Si l'API d'Arnakoff répond, et l'état des données de chaque source : en service ou non, et la date de leur dernier téléchargement.";
+---
+
+<Base title={title} description={description}>
+  <h1>État du service</h1>
+  <p>
+    Cette page interroge l'API depuis ton navigateur, à chaque visite. La route{' '}
+    <a href={`${REFERENCE_PATH}operations/listsources/`}>
+      <code>GET /v1/sources</code>
+    </a>{' '}
+    donne l'état des données de chaque source. Rien n'est conservé.
+  </p>
+
+  <ApiStatus>Cette page lit déjà ses réponses.</ApiStatus>
+
+  <div class="live">
+    <section aria-labelledby="status-title">
+      <h2 id="status-title">API</h2>
+      <p id="status-summary" role="status"></p>
+      <noscript>
+        <p>Cette page a besoin de JavaScript pour interroger l'API.</p>
+      </noscript>
+      <div id="status-unreachable" hidden>
+        <Callout level="attention" title="L'API ne répond pas">
+          <p>
+            Ton navigateur n'a pas pu lire sa réponse. La panne peut venir de l'API ou de ta
+            connexion. Réessaie dans quelques minutes. Ce que chaque source contient et à quel
+            rythme elle change est décrit sur la page <a href={SOURCES_PATH}>Sources</a>.
+          </p>
+        </Callout>
+      </div>
+      <div id="status-problem" hidden>
+        <Callout level="attention" title="L'API répond une erreur">
+          <p id="status-problem-detail"></p>
+        </Callout>
+      </div>
+      <p id="status-actions" hidden>
+        <Button variant="secondary" id="status-refresh">
+          Actualiser
+        </Button>
+      </p>
+    </section>
+
+    <section id="status-sources" aria-labelledby="status-sources-title" hidden>
+      <h2 id="status-sources-title">Sources</h2>
+      <ul id="status-list"></ul>
+    </section>
+  </div>
+</Base>
+
+<script>
+  import { COLON, frenchDateTime, readSources, sourceState, type ApiSource } from '../lib/status';
+
+  const summary = document.querySelector<HTMLElement>('#status-summary');
+  const unreachable = document.querySelector<HTMLElement>('#status-unreachable');
+  const problem = document.querySelector<HTMLElement>('#status-problem');
+  const problemDetail = document.querySelector<HTMLElement>('#status-problem-detail');
+  const actions = document.querySelector<HTMLElement>('#status-actions');
+  const refresh = document.querySelector<HTMLButtonElement>('#status-refresh');
+  const sources = document.querySelector<HTMLElement>('#status-sources');
+  const list = document.querySelector<HTMLElement>('#status-list');
+
+  function item(source: ApiSource): HTMLLIElement {
+    const li = document.createElement('li');
+    const strong = document.createElement('strong');
+    strong.textContent = source.name;
+    li.append(strong, `${COLON}${sourceState(source)}`);
+    return li;
+  }
+
+  function show(state: 'sources' | 'problem' | 'unreachable'): void {
+    if (sources) sources.hidden = state !== 'sources';
+    if (problem) problem.hidden = state !== 'problem';
+    if (unreachable) unreachable.hidden = state !== 'unreachable';
+  }
+
+  /** A reading in progress; a click meanwhile does nothing, and the button keeps the focus. */
+  let pending = false;
+
+  async function update(): Promise<void> {
+    if (pending) return;
+    pending = true;
+    if (summary) summary.textContent = "Interrogation de l'API…";
+    const answer = await readSources();
+    const at = frenchDateTime(new Date());
+    show(answer.kind);
+    if (answer.kind === 'sources') {
+      const inService = answer.sources.filter(({ status }) => status === 'ok').length;
+      const total = answer.sources.length;
+      list?.replaceChildren(...answer.sources.map(item));
+      if (summary) {
+        summary.textContent = `L'API répond. ${String(inService)} source${inService > 1 ? 's' : ''} en service sur ${String(total)}. État lu le ${at}.`;
+      }
+    } else if (answer.kind === 'problem') {
+      if (problemDetail) problemDetail.textContent = answer.problem.detail;
+      if (summary) summary.textContent = `L'API répond une erreur. État lu le ${at}.`;
+    } else if (summary) {
+      summary.textContent = `L'API ne répond pas. État lu le ${at}.`;
+    }
+    if (actions) actions.hidden = false;
+    pending = false;
+  }
+
+  refresh?.addEventListener('click', () => {
+    void update();
+  });
+  void update();
+</script>
+
+<style>
+  /*
+   * Room for what the answer shows, so that the footer starts below the
+   * screen and does not move when it appears (cumulative layout shift).
+   */
+  .live {
+    min-block-size: 70vh;
+  }
+
+  #status-list {
+    padding-inline-start: var(--space-4);
+  }
+
+  #status-list > :global(li) {
+    margin-block: var(--space-2);
+  }
+</style>

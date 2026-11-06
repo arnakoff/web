@@ -11,7 +11,9 @@
 // - the online checker, with the API's answers taken from the examples of the
 //   contract, shows each one readably and sends the input in the body only,
 //   with the token of a stand-in for Cloudflare Turnstile; a domain alone gets
-//   a share link, and opening it checks the domain and leaves a bare URL.
+//   a share link, and opening it checks the domain and leaves a bare URL;
+// - the status page, with the same kind of answers to GET /v1/sources, shows
+//   the state of each source, an error or that the API does not answer.
 // Run with `npm test` after `npm run build`. Chromium comes from
 // `npx playwright install --only-shell chromium`.
 // Callbacks given to page.evaluate run in the browser.
@@ -25,6 +27,8 @@ import {
   CHECKER_PATH,
   DEMO_CHECK_URL,
   SITE_URL,
+  SOURCES_ENDPOINT_URL,
+  STATUS_PATH,
   TURNSTILE_ORIGIN,
   TURNSTILE_SCRIPT_URL,
 } from '../src/lib/site.ts';
@@ -113,6 +117,65 @@ const CHECKER_CASES = [
   },
   { text: "L'API ne répond pas" },
 ];
+
+/** The contract's example source, a downloaded one. */
+const EXAMPLE_SOURCE = /** @type {{ sources: Record<string, unknown>[] }} */ (
+  /** @type {unknown} */ (EXAMPLES.SourceList.value)
+).sources[0];
+
+/**
+ * The sources the status page is given: the contract's example, a registry
+ * queried on demand and a source without data in service, each as the
+ * `Source` schema of the contract describes it.
+ */
+const STATUS_SOURCES = {
+  sources: [
+    EXAMPLE_SOURCE,
+    { ...EXAMPLE_SOURCE, name: 'SIRENE', updated_at: null, entries: null },
+    { ...EXAMPLE_SOURCE, name: 'ARCEP', status: 'indisponible', updated_at: null, entries: 0 },
+  ],
+};
+
+/**
+ * Answers the status page is given, and a text it must then show: `body`
+ * is the answer; when it is null, the request fails.
+ */
+const STATUS_CASES = [
+  { status: 200, body: STATUS_SOURCES, text: "L'API répond. 2 sources en service sur 3." },
+  { status: 200, body: STATUS_SOURCES, text: 'Indisponible' },
+  {
+    status: 429,
+    body: EXAMPLES.ProblemTooManyRequests?.value,
+    text: 'Le quota de requêtes est atteint.',
+  },
+  { status: 0, body: null, text: "L'API ne répond pas." },
+];
+
+/**
+ * Answers GET /v1/sources of `page` with `body`, as the API lets the site
+ * read it, or fails the request when `body` is null.
+ * @param {import('playwright').Page} page
+ * @param {number} [status]
+ * @param {unknown} [body]
+ */
+function stubSources(page, status = 200, body = STATUS_SOURCES) {
+  return page.route(SOURCES_ENDPOINT_URL, (route) =>
+    body === null
+      ? route.abort()
+      : route.fulfill({
+          status,
+          contentType: status === 200 ? 'application/json' : 'application/problem+json',
+          headers: { 'Access-Control-Allow-Origin': origin },
+          body: JSON.stringify(body),
+        }),
+  );
+}
+
+/** The outside origins a page may call: the API and Turnstile for the checker, the API for the status page. */
+const OUTSIDE_ORIGINS = new Map([
+  [CHECKER_PATH, [TURNSTILE_ORIGIN]],
+  [STATUS_PATH, [API_ORIGIN]],
+]);
 
 /** The token the stand-in for Turnstile gives. */
 const TURNSTILE_TOKEN = 'test-token';
@@ -252,6 +315,20 @@ async function checkSearch(browser) {
 }
 
 /**
+ * Runs axe on the page as it is shown and reports its serious and critical violations.
+ * @param {import('playwright').Page} page
+ * @param {string} where
+ */
+async function checkAxe(page, where) {
+  const results = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
+  for (const violation of results.violations) {
+    if (violation.impact && FAILING_IMPACTS.has(violation.impact)) {
+      errors.push(`${where}: ${violation.id}: ${violation.help}`);
+    }
+  }
+}
+
+/**
  * Runs the online checker against simulated answers of the API, then axe on
  * the shown result.
  * @param {import('playwright').Browser} browser
@@ -325,12 +402,31 @@ async function checkChecker(browser) {
     if (body.turnstile_token !== TURNSTILE_TOKEN) {
       errors.push(`${where}: the Turnstile token is not sent`);
     }
-    const results = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
-    for (const violation of results.violations) {
-      if (violation.impact && FAILING_IMPACTS.has(violation.impact)) {
-        errors.push(`${where}: ${violation.id}: ${violation.help}`);
-      }
+    await checkAxe(page, where);
+    await checkTrackers(page, where, errors);
+    await context.close();
+  }
+}
+
+/**
+ * Runs the status page against simulated answers of GET /v1/sources, then
+ * axe on the shown state.
+ * @param {import('playwright').Browser} browser
+ */
+async function checkStatus(browser) {
+  for (const { status, body, text } of STATUS_CASES) {
+    const where = `${STATUS_PATH} ${status === 0 ? 'unreachable' : String(status)} « ${text} »`;
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    watchPage(page, where, origin, errors, [API_ORIGIN]);
+    await stubSources(page, status, body);
+    await page.goto(origin + STATUS_PATH);
+    try {
+      await page.getByText(text).first().waitFor({ timeout: 5_000 });
+    } catch {
+      errors.push(`${where}: « ${text} » is not shown`);
     }
+    await checkAxe(page, where);
     await checkTrackers(page, where, errors);
     await context.close();
   }
@@ -340,14 +436,16 @@ const browser = await chromium.launch();
 try {
   await checkSearch(browser);
   await checkChecker(browser);
+  await checkStatus(browser);
   for (const path of PAGES) {
     for (const viewport of VIEWPORTS) {
       for (const colorScheme of SCHEMES) {
         const where = `${path} ${String(viewport.width)}px ${colorScheme}`;
         const context = await browser.newContext({ viewport, colorScheme });
         const page = await context.newPage();
-        watchPage(page, where, origin, errors, path === CHECKER_PATH ? [TURNSTILE_ORIGIN] : []);
+        watchPage(page, where, origin, errors, OUTSIDE_ORIGINS.get(path) ?? []);
         await stubTurnstile(page);
+        await stubSources(page);
         const url = origin + path;
         await page.goto(url);
 
@@ -389,5 +487,5 @@ if (errors.length > 0) {
   process.exit(1);
 }
 console.log(
-  `dist/ accessible: ${String(PAGES.length)} pages at ${VIEWPORTS.map(({ width }) => `${String(width)}px`).join(' and ')}, ${SCHEMES.join(' and ')}: axe WCAG 2.2 AA, overflow, keyboard, CSP and trackers checked, docs search and online checker included.`,
+  `dist/ accessible: ${String(PAGES.length)} pages at ${VIEWPORTS.map(({ width }) => `${String(width)}px`).join(' and ')}, ${SCHEMES.join(' and ')}: axe WCAG 2.2 AA, overflow, keyboard, CSP and trackers checked, docs search, online checker and status page included.`,
 );

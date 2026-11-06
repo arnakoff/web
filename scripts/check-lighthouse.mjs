@@ -1,13 +1,17 @@
 // Checks the Lighthouse budgets of the built site in dist/, served with the
 // headers of dist/_headers, with the mobile and desktop presets: each page
 // scores at least BUDGETS in every category. Lighthouse simulates a slow
-// network and CPU, so the scores barely depend on the machine.
+// network and CPU, so the scores barely depend on the machine. Requests to the
+// API are blocked: the scores never depend on it, and the status page is
+// measured in its « L'API ne répond pas » state (check-a11y.mjs checks the
+// others).
 // Run with `npm test` after `npm run build`. Chromium comes from
 // `npx playwright install --only-shell chromium`.
 import { createServer } from 'node:net';
 import lighthouse from 'lighthouse';
 import desktopConfig from 'lighthouse/core/config/desktop-config.js';
 import { chromium } from 'playwright';
+import { API_ORIGIN } from '../src/lib/site.ts';
 import { DIST, PAGES, requireDist, serveDist } from './dist.mjs';
 
 /**
@@ -63,7 +67,12 @@ try {
       const where = `${path} ${preset.name}`;
       const result = await lighthouse(
         origin + path,
-        { port, logLevel: 'error', onlyCategories: Object.keys(BUDGETS) },
+        {
+          port,
+          logLevel: 'error',
+          onlyCategories: Object.keys(BUDGETS),
+          blockedUrlPatterns: [`${API_ORIGIN}/*`],
+        },
         preset.config,
       );
       if (!result) throw new Error(`${where}: Lighthouse returned no result`);

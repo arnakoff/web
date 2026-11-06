@@ -14,6 +14,7 @@ import {
   LEGAL_NOTICE_PATH,
   MCP_PATH,
   PRIVACY_PATH,
+  STATUS_PATH,
   REFERENCE_PATH,
   TERMS_PATH,
 } from '../src/lib/site.ts';
@@ -36,8 +37,10 @@ export const PAGES = [
   '/sources/',
   '/signaux/',
   '/verifier/',
+  STATUS_PATH,
   LEGAL_NOTICE_PATH,
   PRIVACY_PATH,
+  STATUS_PATH,
   TERMS_PATH,
   '/docs/',
   '/docs/demarrage-rapide/',

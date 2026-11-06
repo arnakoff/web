@@ -11,7 +11,7 @@
 #   once it is enabled on the project (CONTRIBUTING.md). Nothing else may
 #   leave the site: `npm test` fails on any outside request.
 # - {api-origin} in connect-src: the online checker (/verifier/) calls
-#   POST /v1/demo/check of the API.
+#   POST /v1/demo/check of the API, the status page (/etat/) GET /v1/sources.
 # - /verifier/ alone also lets in Cloudflare Turnstile, the checker's
 #   anti-abuse widget: its script and its frame. The build writes there, in
 #   place of {checker-csp}, the policy of every page with TURNSTILE_ORIGIN of
