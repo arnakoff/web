@@ -15,9 +15,9 @@ description: Le serveur MCP d'Arnakoff, à distance ou en local en stdio, ses de
 ---
 
 import { Code } from '@astrojs/starlight/components';
-import Callout from '../../../components/Callout.astro';
 import {
   AUTH_PATH,
+  KEY_PATH,
   MCP_REGISTRY_URL,
   MCP_URL,
   SOURCES_PATH,
@@ -42,13 +42,6 @@ Le serveur a deux outils, tous deux en lecture seule.
 
 ## À distance
 
-<Callout level="attention" title="la page pour obtenir une clé n’est pas encore en ligne">
-  <p>
-    L'adresse ci-dessous est en service. Le lien vers la page du site pour obtenir une clé sera
-    ajouté ici dès son ouverture.
-  </p>
-</Callout>
-
 Dans ton client MCP, déclare un serveur distant :
 
 - adresse : <code>{MCP_URL}</code> ;
@@ -57,7 +50,7 @@ Dans ton client MCP, déclare un serveur distant :
 
 Le serveur est inscrit au <a href={MCP_REGISTRY_URL}>registre MCP officiel</a> sous le nom `com.arnakoff/api` : un client qui lit le registre y trouve cette adresse et l'en-tête attendu.
 
-La clé et le quota sont ceux de `GET /v1/check`, détaillés dans <a href={AUTH_PATH}>Authentification et quotas</a>. Chaque requête `POST /mcp` compte une unité, l'ouverture de la connexion et la liste des outils comprises. Sans clé, la réponse est la même que sur `/v1/check` :
+La clé, à demander sur <a href={KEY_PATH}>Obtenir une clé API</a>, et le quota sont ceux de `GET /v1/check`, détaillés dans <a href={AUTH_PATH}>Authentification et quotas</a>. Chaque requête `POST /mcp` compte une unité, l'ouverture de la connexion et la liste des outils comprises. Sans clé, la réponse est la même que sur `/v1/check` :
 
 <Code
   lang="sh"

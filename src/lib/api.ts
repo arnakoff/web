@@ -29,8 +29,9 @@ export function isProblem(value: unknown): value is Problem {
 
 /**
  * Sends `init` to `url` and reads the JSON body of the answer, whatever its
- * status. `undefined` when there is no readable answer: network failure,
- * CORS refusal, timeout or a body that is not JSON.
+ * status; `body` is `undefined` when the answer has none, as a `202`.
+ * `undefined` when there is no readable answer: network failure, CORS
+ * refusal, timeout or a body that is not JSON.
  */
 export async function requestJson(
   url: string,
@@ -43,7 +44,8 @@ export async function requestJson(
       cache: 'no-store',
       signal: AbortSignal.timeout(TIMEOUT),
     });
-    return { ok: response.ok, body: (await response.json()) as unknown };
+    const text = await response.text();
+    return { ok: response.ok, body: text === '' ? undefined : (JSON.parse(text) as unknown) };
   } catch {
     return undefined;
   }

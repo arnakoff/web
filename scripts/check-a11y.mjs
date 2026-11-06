@@ -26,6 +26,9 @@ import {
   API_ORIGIN,
   CHECKER_PATH,
   DEMO_CHECK_URL,
+  KEY_PATH,
+  KEY_REDEEM_URL,
+  KEY_REQUEST_URL,
   SITE_URL,
   SOURCES_ENDPOINT_URL,
   STATUS_PATH,
@@ -426,11 +429,91 @@ async function checkStatus(browser) {
   }
 }
 
+/** A login link's token, as the API mails it: 43 base62 characters. */
+const LINK_TOKEN = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG';
+
+/**
+ * The key page against simulated answers of the API, taken from the
+ * contract's examples: a login link gives a key, an expired one an error,
+ * and a request a link. The token must leave the address at once.
+ * @param {import('playwright').Browser} browser
+ */
+async function checkKeyPage(browser) {
+  const issued = /** @type {{ api_key: string }} */ (EXAMPLES.IssuedKey.value);
+  const cases = [
+    { name: 'link', status: 201, body: EXAMPLES.IssuedKey.value, text: issued.api_key },
+    {
+      name: 'expired link',
+      status: 422,
+      body: EXAMPLES.ProblemInvalidLoginLink.value,
+      text: /** @type {{ title: string }} */ (EXAMPLES.ProblemInvalidLoginLink.value).title,
+    },
+  ];
+  for (const { name, status, body, text } of cases) {
+    const where = `${KEY_PATH} ${name}`;
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    watchPage(page, where, origin, errors, [API_ORIGIN, TURNSTILE_ORIGIN]);
+    await stubTurnstile(page);
+    /** @type {unknown} */
+    let sent;
+    await page.route(KEY_REDEEM_URL, async (route) => {
+      sent = route.request().postDataJSON();
+      await route.fulfill({
+        status,
+        contentType: status === 201 ? 'application/json' : 'application/problem+json',
+        headers: { 'Access-Control-Allow-Origin': origin },
+        body: JSON.stringify(body),
+      });
+    });
+    await page.goto(`${origin}${KEY_PATH}#${LINK_TOKEN}`);
+    try {
+      await page.getByText(text).first().waitFor({ timeout: 5_000 });
+    } catch {
+      errors.push(`${where}: « ${text} » is not shown`);
+    }
+    if (/** @type {{ token?: unknown }} */ (sent)?.token !== LINK_TOKEN)
+      errors.push(`${where}: the link's token is not sent to ${KEY_REDEEM_URL}`);
+    if (await page.evaluate(() => location.hash !== ''))
+      errors.push(`${where}: the link's token stays in the address`);
+    await checkAxe(page, where);
+    await checkTrackers(page, where, errors);
+    await context.close();
+  }
+
+  const where = `${KEY_PATH} request`;
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  watchPage(page, where, origin, errors, [API_ORIGIN, TURNSTILE_ORIGIN]);
+  await stubTurnstile(page);
+  /** @type {unknown} */
+  let asked;
+  await page.route(KEY_REQUEST_URL, async (route) => {
+    asked = route.request().postDataJSON();
+    await route.fulfill({ status: 202, headers: { 'Access-Control-Allow-Origin': origin } });
+  });
+  await page.goto(origin + KEY_PATH);
+  await page.getByLabel('Ton adresse e-mail').fill('dev@exemple.fr');
+  await page.getByRole('button', { name: 'Recevoir le lien' }).click();
+  try {
+    await page.getByText('demande reçue').first().waitFor({ timeout: 5_000 });
+  } catch {
+    errors.push(`${where}: « demande reçue » is not shown`);
+  }
+  const request = /** @type {{ email?: unknown, turnstile_token?: unknown } | undefined} */ (asked);
+  if (request?.email !== 'dev@exemple.fr' || request.turnstile_token !== TURNSTILE_TOKEN)
+    errors.push(`${where}: ${KEY_REQUEST_URL} did not get the address and the anti-abuse token`);
+  await checkAxe(page, where);
+  await checkTrackers(page, where, errors);
+  await context.close();
+}
+
 const browser = await chromium.launch();
 try {
   await checkSearch(browser);
   await checkChecker(browser);
   await checkStatus(browser);
+  await checkKeyPage(browser);
   for (const path of PAGES) {
     for (const viewport of VIEWPORTS) {
       for (const colorScheme of SCHEMES) {
@@ -481,5 +564,5 @@ if (errors.length > 0) {
   process.exit(1);
 }
 console.log(
-  `dist/ accessible: ${String(PAGES.length)} pages at ${VIEWPORTS.map(({ width }) => `${String(width)}px`).join(' and ')}, ${SCHEMES.join(' and ')}: axe WCAG 2.2 AA, overflow, keyboard, CSP and trackers checked, docs search, online checker and status page included.`,
+  `dist/ accessible: ${String(PAGES.length)} pages at ${VIEWPORTS.map(({ width }) => `${String(width)}px`).join(' and ')}, ${SCHEMES.join(' and ')}: axe WCAG 2.2 AA, overflow, keyboard, CSP and trackers checked, docs search, online checker, key page and status page included.`,
 );

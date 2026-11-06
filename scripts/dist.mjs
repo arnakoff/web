@@ -11,6 +11,7 @@ import { problemPath, problemsOf } from '../src/lib/problems.ts';
 import {
   AUTH_PATH,
   ERRORS_PATH,
+  KEY_PATH,
   LEGAL_NOTICE_PATH,
   MCP_PATH,
   PRIVACY_PATH,
@@ -37,6 +38,7 @@ export const PAGES = [
   '/sources/',
   '/signaux/',
   '/verifier/',
+  KEY_PATH,
   STATUS_PATH,
   LEGAL_NOTICE_PATH,
   PRIVACY_PATH,

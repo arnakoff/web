@@ -1,0 +1,279 @@
+---
+// The key page: asks arnakoff/api to mail a login link for an address
+// (`POST /v1/keys/request`, lib/keys.ts), and opens that link, whose token
+// comes in the fragment (https://arnakoff.com/cle#<token>): the page wipes it
+// from the address, then trades it for a key (`POST /v1/keys/redeem`) shown
+// once, never stored. The address has no `name` and the CSP forbids form
+// submission, so it can never end up in a URL. Each request carries a token
+// of the Cloudflare Turnstile widget, rendered in #key-challenge.
+import Base from '../layouts/Base.astro';
+import Button from '../components/Button.astro';
+import Callout from '../components/Callout.astro';
+import { CALLOUT_LABELS } from '../lib/callout';
+import { AUTH_PATH, PRIVACY_PATH } from '../lib/site';
+
+const title = 'Obtenir une clé API gratuite · Arnakoff';
+const description =
+  "Donne ton adresse e-mail : tu reçois un lien de connexion qui affiche ta clé de l'API Arnakoff, gratuite, une seule fois.";
+const levels = Object.keys(CALLOUT_LABELS) as (keyof typeof CALLOUT_LABELS)[];
+---
+
+<Base title={title} description={description}>
+  <h1>Obtenir une clé API</h1>
+  <p>
+    La clé est gratuite, avec un quota décrit dans
+    <a href={AUTH_PATH}>Authentification et quotas</a>. Une adresse e-mail a une seule clé active :
+    en demander une nouvelle révoque l'ancienne.
+  </p>
+
+  <section id="key-result" aria-labelledby="key-result-title" hidden>
+    <h2 id="key-result-title" tabindex="-1">
+      Ta clé
+    </h2>
+    <div id="key-output"></div>
+  </section>
+
+  <h2>Recevoir un lien de connexion</h2>
+  <form id="key-request" novalidate>
+    <label for="key-email">Ton adresse e-mail</label>
+    <div class="row">
+      <input
+        id="key-email"
+        type="email"
+        required
+        maxlength="254"
+        autocomplete="email"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-describedby="key-privacy"
+      />
+      <Button type="submit">Recevoir le lien</Button>
+    </div>
+    <div id="key-challenge"></div>
+    <p id="key-privacy" class="hint">
+      Ton adresse part vers l'API dans le corps de la requête, jamais dans l'adresse de la page.
+      Elle est gardée avec ta clé et supprimée 1 an après sa révocation. Le contrôle anti-abus est
+      Turnstile, un service de Cloudflare : ton adresse ne lui est pas envoyée. Le détail est dans
+      la
+      <a href={PRIVACY_PATH}>politique de confidentialité</a>.
+    </p>
+  </form>
+  <noscript>
+    <p>Cette page a besoin de JavaScript.</p>
+  </noscript>
+
+  <p id="key-status" class="hint" role="status"></p>
+
+  <h2>Ensuite</h2>
+  <ol>
+    <li>Tu reçois un lien de connexion. Il ne sert qu'une fois et expire après 15 minutes.</li>
+    <li>
+      Le lien ouvre cette page, qui affiche ta clé une seule fois : le serveur n'en garde qu'une
+      empreinte. Copie-la tout de suite.
+    </li>
+    <li>
+      Envoie-la dans l'en-tête <code>Authorization</code> de chaque vérification, comme le montre
+      <a href={AUTH_PATH}>Authentification et quotas</a>.
+    </li>
+  </ol>
+
+  {levels.map((level) => (
+    <template data-callout={level}>
+      <Callout level={level} />
+    </template>
+  ))}
+  <template data-key>
+    <div class="key">
+      <p class="key-value">
+        <code></code>
+      </p>
+      <Button variant="secondary" data-copy>
+        Copier la clé
+      </Button>
+    </div>
+  </template>
+</Base>
+
+<script>
+  import { renderAntiAbuse } from '../lib/checker';
+  import { linkToken, redeemLink, requestLink, type IssuedKey } from '../lib/keys';
+  import { callout, clone, paragraph, problemNodes } from '../lib/render';
+  import { AUTH_PATH } from '../lib/site';
+
+  const form = document.querySelector<HTMLFormElement>('#key-request');
+  const email = document.querySelector<HTMLInputElement>('#key-email');
+  const challenge = document.querySelector<HTMLElement>('#key-challenge');
+  const submit = form?.querySelector<HTMLButtonElement>('button[type="submit"]');
+  const status = document.querySelector<HTMLElement>('#key-status');
+  const result = document.querySelector<HTMLElement>('#key-result');
+  const heading = document.querySelector<HTMLElement>('#key-result-title');
+  const output = document.querySelector<HTMLElement>('#key-output');
+
+  /** Shows `nodes` as the result and moves the focus to its heading. */
+  function show(title: string, nodes: Node[]): void {
+    if (!result || !output || !heading) return;
+    heading.textContent = title;
+    output.replaceChildren(...nodes);
+    result.hidden = false;
+    heading.focus();
+  }
+
+  function message(text: string): Node[] {
+    return [callout('attention', undefined, [paragraph(text)])];
+  }
+
+  /** The key, its copy button and what to do with it. */
+  function keyNodes(key: IssuedKey): Node[] {
+    const block = clone('template[data-key]');
+    const code = block.querySelector('code');
+    if (code) code.textContent = key.api_key;
+    block.querySelector('[data-copy]')?.addEventListener('click', () => {
+      void navigator.clipboard
+        .writeText(key.api_key)
+        .then(
+          () => 'Clé copiée.',
+          () => 'Copie impossible : sélectionne la clé pour la copier.',
+        )
+        .then((text) => {
+          if (status) status.textContent = text;
+        });
+    });
+    return [
+      callout('attention', 'copie-la maintenant', [
+        paragraph(
+          'Elle ne sera plus jamais affichée : si tu la perds, demande un nouveau lien. Garde-la secrète, côté serveur, jamais dans une URL ni dans du code exécuté par un navigateur.',
+        ),
+      ]),
+      block,
+      paragraph(
+        `Elle se termine par ${key.hint}. Si cette adresse avait déjà une clé, elle est révoquée.`,
+      ),
+      paragraph(
+        'Pour l’utiliser : ',
+        { href: AUTH_PATH, label: 'Authentification et quotas' },
+        '.',
+      ),
+    ];
+  }
+
+  // The token of a login link must not stay in the address, nor in the
+  // history, nor reach Turnstile's script: read it, then wipe it at once.
+  const linked = linkToken(location.hash);
+  if (location.hash) history.replaceState(null, '', location.pathname);
+
+  if (linked) {
+    if (status) status.textContent = 'Création de ta clé…';
+    void redeemLink(linked).then((answer) => {
+      if (status) status.textContent = '';
+      if (answer.kind === 'key') show('Ta clé', keyNodes(answer.key));
+      else if (answer.kind === 'problem')
+        show(
+          'Lien de connexion',
+          problemNodes(answer.problem, paragraph('Demande un nouveau lien ci-dessous.')),
+        );
+      else
+        show('Lien de connexion', message("L'API ne répond pas. Recharge la page pour réessayer."));
+    });
+  }
+
+  /** The current anti-abuse token, `''` until the widget gives one. */
+  let token = '';
+  const newToken = challenge
+    ? renderAntiAbuse(challenge, (value) => {
+        token = value;
+      })
+    : () => undefined;
+
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!form || !email || !submit || !status) return;
+    const address = email.value.trim();
+    if (address === '' || email.validity.typeMismatch) {
+      status.textContent = '';
+      show('Lien de connexion', message('Donne une adresse e-mail, comme dev@exemple.fr.'));
+      email.focus();
+      return;
+    }
+    if (token === '') {
+      status.textContent = '';
+      show(
+        'Lien de connexion',
+        message(
+          "Le contrôle anti-abus n'est pas encore validé. Attends quelques secondes, puis réessaie. S'il ne s'affiche pas, recharge la page.",
+        ),
+      );
+      return;
+    }
+    // The API accepts each token once: the next request needs a new one.
+    const sent = token;
+    token = '';
+    newToken();
+    submit.disabled = true;
+    form.setAttribute('aria-busy', 'true');
+    status.textContent = 'Envoi de la demande…';
+    void requestLink(address, sent).then((answer) => {
+      submit.disabled = false;
+      form.removeAttribute('aria-busy');
+      status.textContent = '';
+      if (answer.kind === 'sent')
+        show('Lien de connexion', [
+          callout('info', 'demande reçue', [
+            paragraph(
+              `Si ${address} peut recevoir un lien, il arrive dans quelques minutes. Il ne sert qu'une fois et expire après 15 minutes. Pense à regarder dans tes courriers indésirables.`,
+            ),
+          ]),
+        ]);
+      else if (answer.kind === 'problem') show('Lien de connexion', problemNodes(answer.problem));
+      else
+        show(
+          'Lien de connexion',
+          message("L'API ne répond pas. Vérifie ta connexion et réessaie."),
+        );
+    });
+  });
+</script>
+
+<style>
+  form {
+    margin-block: var(--space-4);
+  }
+  label {
+    font-weight: 600;
+  }
+  .hint {
+    margin-block: var(--space-1);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block: var(--space-2);
+  }
+  input[type='email'] {
+    flex: 1 1 16rem;
+    min-width: 0;
+    min-height: var(--size-target);
+    padding-inline: var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+  }
+  /* Room for the Turnstile widget, 65 px high, so the page does not shift. */
+  #key-challenge {
+    min-height: 65px;
+    margin-block: var(--space-2);
+  }
+  #key-result {
+    margin-block: var(--space-6);
+  }
+  .key-value {
+    overflow-wrap: anywhere;
+  }
+  #key-output > :global(p) {
+    overflow-wrap: anywhere;
+  }
+</style>
