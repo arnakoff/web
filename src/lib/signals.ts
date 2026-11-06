@@ -58,7 +58,12 @@ const GROUPS: { title: string; examples: Record<string, SignalExample[]> }[] = [
       amf_blacklist: [
         { message: "Figure sur la liste noire de l'AMF (catégorie Forex) depuis le 08/10/2026." },
       ],
-      acpr_blacklist: [],
+      acpr_blacklist: [
+        {
+          message:
+            "Figure sur la liste noire de l'ACPR (catégories Forex, Usurpation Professionnel) depuis le 12/03/2026.",
+        },
+      ],
     },
   },
   {
