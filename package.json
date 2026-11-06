@@ -14,7 +14,9 @@
     "preview": "astro preview",
     "check": "astro check && eslint . --max-warnings 0 && prettier --check .",
     "format": "prettier --write .",
-    "test": "node scripts/check-contrast.mjs && node scripts/check-share.mjs && node scripts/check-site.mjs && node scripts/check-a11y.mjs && node scripts/check-lighthouse.mjs",
+    "test": "npm run test:site && npm run test:lighthouse",
+    "test:site": "node scripts/check-contrast.mjs && node scripts/check-share.mjs && node scripts/check-site.mjs && node scripts/check-a11y.mjs",
+    "test:lighthouse": "node scripts/check-lighthouse.mjs",
     "icons": "node scripts/build-icons.mjs",
     "sync": "node scripts/sync.mjs"
   },
