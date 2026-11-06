@@ -15,6 +15,9 @@ export const SIGNALS_PATH = '/signaux/';
 /** Path of the online checker. */
 export const CHECKER_PATH = '/verifier/';
 
+/** Path of the status page: whether the API answers and the state of each source's data. */
+export const STATUS_PATH = '/etat/';
+
 /** Path of the privacy policy: what each part of Arnakoff keeps, for how long, and the rights. */
 export const PRIVACY_PATH = '/confidentialite/';
 /** Path of the legal notice: publisher, contact and host. */
@@ -52,11 +55,14 @@ export const DOCS_URL = new URL(DOCS_PATH, SITE_URL).href;
  */
 export const API_URL = 'https://api.arnakoff.com/v1';
 
-/** Origin of the API, the only outside origin the CSP lets the checker call. */
+/** Origin of the API, the only outside origin the CSP lets the checker and the status page call. */
 export const API_ORIGIN = new URL(API_URL).origin;
 
 /** Keyless check of the online checker (`POST /v1/demo/check`). */
 export const DEMO_CHECK_URL = `${API_URL}/demo/check`;
+
+/** Sources and the state of their data (`GET /v1/sources`), read by the status page. */
+export const SOURCES_ENDPOINT_URL = `${API_URL}/sources`;
 
 /**
  * Remote MCP endpoint (`POST /mcp`, outside `/v1`), and the entry of the

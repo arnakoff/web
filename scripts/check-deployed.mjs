@@ -2,14 +2,15 @@
 // Cloudflare adds its Web Analytics script at deploy time, so it is not in
 // dist/ and check-a11y.mjs never sees it. On each page of PAGES:
 // - no CSP violation;
-// - no request leaves the site, except to Cloudflare Web Analytics, and to
-//   Cloudflare Turnstile on the online checker, which alone lets it in;
+// - no request leaves the site, except to Cloudflare Web Analytics, to
+//   Cloudflare Turnstile on the online checker, which alone lets it in, and
+//   to the API on the status page (PAGE_ORIGINS);
 // - no cookie is set and browser storage holds nothing but interface state.
 // Run by the Deploy job of CI: `node scripts/check-deployed.mjs <url>`.
 import { chromium } from 'playwright';
 import { CHECKER_PATH, TURNSTILE_ORIGIN } from '../src/lib/site.ts';
 import { PAGES } from './dist.mjs';
-import { ANALYTICS_ORIGINS, checkTrackers, watchPage } from './trackers.mjs';
+import { ANALYTICS_ORIGINS, PAGE_ORIGINS, checkTrackers, watchPage } from './trackers.mjs';
 
 const [base] = process.argv.slice(2);
 if (!base) {
@@ -27,13 +28,10 @@ const browser = await chromium.launch();
 try {
   for (const path of PAGES) {
     const page = await browser.newPage();
-    watchPage(
-      page,
-      path,
-      origin,
-      errors,
-      path === CHECKER_PATH ? [...ANALYTICS_ORIGINS, TURNSTILE_ORIGIN] : ANALYTICS_ORIGINS,
-    );
+    watchPage(page, path, origin, errors, [
+      ...ANALYTICS_ORIGINS,
+      ...(PAGE_ORIGINS.get(path) ?? []),
+    ]);
     page.on('request', (request) => {
       const url = new URL(request.url());
       if (ANALYTICS_ORIGINS.includes(url.origin)) analytics.add(url.origin);
